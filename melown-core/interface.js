@@ -29,6 +29,18 @@ Melown.CoreInterface.prototype.on = function(eventName_, call_) {
     this.core_.on(eventName_, call_);
 };
 
+Melown.CoreInterface.prototype.disableMap = function() {
+    this.core_.disableMap_ = true;
+}
+
+Melown.CoreInterface.prototype.enableMap = function() {
+    this.core_.disableMap_ = false;
+}
+
+Melown.CoreInterface.prototype.mapDisabled = function() {
+    return this.core_.disableMap_;
+}
+
 
 //prevent minification
 Melown["MapCore"] = Melown.MapCore;

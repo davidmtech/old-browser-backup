@@ -17,6 +17,8 @@ Melown.Core = function(element_, options_) {
     this.rendererInterface_ = new Melown.RendererInterface(this.renderer_);
     this.proj4_ = window["_mproj4_"];
 
+    this.disableMap_ = false;
+
     //platform detection
     Melown.Platform.init();
 

@@ -363,7 +363,9 @@ Melown.Map.prototype.update = function() {
 
     this.renderer_.paintGL();
 
-    this.draw();
+    if (!this.core_.disableMap_) {
+        this.draw();
+    }
 
     this.stats_.end();
 
