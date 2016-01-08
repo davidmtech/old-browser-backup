@@ -26,7 +26,7 @@ Melown.CoreInterface.prototype.getRenderer = function() {
 };
 
 Melown.CoreInterface.prototype.on = function(eventName_, call_) {
-    this.core_.on(eventName_, call_);
+    return this.core_.on(eventName_, call_);
 };
 
 Melown.CoreInterface.prototype.callListener = function(name_, event_) {
