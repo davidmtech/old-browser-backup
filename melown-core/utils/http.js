@@ -21,6 +21,12 @@ Melown.Http.imageFactory = function(url_, onload_, onerror_) {
     var image_ = new Image();
     image_.onerror = onerror_;
     image_.onload = onload_;
+
+    image_.abort = function() {
+        delete this.onerror;
+        delete this.onload;
+    }.bind(image_);
+
     Melown.Http.loadImageFormUrl(image_, url_);
     return image_;
 };
