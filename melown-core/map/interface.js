@@ -26,12 +26,22 @@ Melown.MapInterface.prototype.getCredits = function() {
     return this.map_.getCredits();
 };
 
+Melown.MapInterface.prototype.getVisibleCredits = function() {
+    return this.map_.getVisibleCredits();
+};
+
+Melown.MapInterface.prototype.getCreditInfo = function(creditId_) {
+    var credit_ = this.map_.getCreditById(creditId_);
+    return credit_ ? credit_.getInfo() : {};
+};
+
 Melown.MapInterface.prototype.getViews = function() {
-    return this.map_.getViews();
+    return this.map_.getNamedViews();
 };
 
 Melown.MapInterface.prototype.getViewInfo = function(viewId_) {
-    return this.map_.getViewInfo(viewId_);
+    var view_ = this.map_.getNamedView(viewId_);
+    return view_ ? view_.getInfo() : {};
 };
 
 Melown.MapInterface.prototype.getBoundLayers = function() {
@@ -76,8 +86,8 @@ Melown.MapInterface.prototype.convertPositionViewMode = function(position_, mode
     return (pos_ != null) ? pos_.pos_ : pos_;
 };
 
-Melown.MapInterface.prototype.convertPositionHeightMode = function(position_, mode_) {
-    var pos_ = (new Melown.MapPosition(this.map_, position_)).convertHeightMode(mode_);
+Melown.MapInterface.prototype.convertPositionHeightMode = function(position_, mode_, noPrecisionCheck_) {
+    var pos_ = (new Melown.MapPosition(this.map_, position_)).convertHeightMode(mode_, noPrecisionCheck_);
     return (pos_ != null) ? pos_.pos_ : pos_;
 };
 
@@ -221,6 +231,15 @@ Melown.Map.prototype.setRenderSlotEnabled = function(id_, state_) {
 
 Melown.Map.prototype.getRenderSlotEnabled = function(id_) {
     return this.map_.getRenderSlotEnabled(id_);
+};
+
+Melown.Map.prototype.setLoaderSuspended = function(state_) {
+    this.map_.loaderSuspended_ = state_;
+    return this;
+};
+
+Melown.Map.prototype.getLoaderSuspended = function() {
+    return this.map_.loaderSuspended_;
 };
 
 Melown.MapPositionInterface = Melown.MapPosition;

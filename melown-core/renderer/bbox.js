@@ -13,13 +13,26 @@ Melown.BBox = function(xmin_, ymin_, zmin_, xmax_, ymax_, zmax_) {
     this.max_[1] = (ymax_ != null) ? ymax_ : Number.NEGATIVE_INFINITY;
     this.max_[2] = (zmax_ != null) ? zmax_ : Number.NEGATIVE_INFINITY;
 
+    /*
     this.maxSize_ = Math.max(this.max_[0] - this.min_[0],
                              this.max_[1] - this.min_[1],
-                             this.max_[2] - this.min_[2]);
+                             this.max_[2] - this.min_[2]);*/
+    this.updateMaxSize();
+};
+
+Melown.BBox.prototype.clone = function() {
+    return new Melown.BBox(this.min_[0], this.min_[1], this.min_[2],
+                           this.max_[0], this.max_[1], this.max_[2]);
 };
 
 Melown.BBox.prototype.side = function(index_) {
     return this.max_[index_] - this.min_[index_];
+};
+
+Melown.BBox.prototype.updateMaxSize = function(index_) {
+    this.maxSize_ = Math.abs(Math.max(this.max_[0] - this.min_[0],
+                                      this.max_[1] - this.min_[1],
+                                      this.max_[2] - this.min_[2]));
 };
 
 Melown.BBox.prototype.center = function(vec_) {

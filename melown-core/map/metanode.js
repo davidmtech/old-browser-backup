@@ -11,11 +11,14 @@ Melown.MapMetanode = function(metatile_, id_, stream_) {
     this.metatile_ = metatile_;
     this.map_ = metatile_.map_;
     this.id_ = id_;
+    this.credits_ = [];
     //this.metadata_ = null;
     //this.nodes_ = [];
     //this.children_ = [null, null, null, null];
 
-    this.parseMetanode(stream_);
+    if (stream_) {
+        this.parseMetanode(stream_);
+    }
 };
 
 Melown.MapMetanode.prototype.kill = function() {
@@ -23,6 +26,14 @@ Melown.MapMetanode.prototype.kill = function() {
 
 Melown.MapMetanode.prototype.hasChild = function(index_) {
     return ((this.flags_ & (1<<(index_+4))) != 0);
+};
+
+Melown.MapMetanode.prototype.hasChildById = function(id_) {
+    var ix_ = id_[1] - (this.id_[1]<<1); 
+    var iy_ = id_[2] - (this.id_[2]<<1);
+    
+    //ul,ur,ll,lr
+    return this.hasChild((iy_<<1) + ix_); 
 };
 
 Melown.MapMetanode.prototype.hasChildren = function() {
@@ -116,6 +127,25 @@ struct Metanode {
         index_ += extentBits_;
     }
 
+    //check zero bbox
+    var extentsBytesSum_ = 0;
+    for (var i = 0, li = extentsBytes_.length; i < li; i++) {
+        extentsBytesSum_ += extentsBytes_[i];
+    }
+    
+    //extent bytes are empty and therefore bbox is empty also
+    if (extentsBytesSum_ == 0 ) {
+        //console.log("empty-node: id: " + JSON.stringify(this.id_));
+        //console.log("empty-node: surafce: " + this.metatile_.surface_.id_);
+
+        minExtents_[0] = Number.POSITIVE_INFINITY;
+        minExtents_[1] = Number.POSITIVE_INFINITY;
+        minExtents_[2] = Number.POSITIVE_INFINITY;
+        maxExtents_[0] = Number.NEGATIVE_INFINITY;
+        maxExtents_[1] = Number.NEGATIVE_INFINITY;
+        maxExtents_[2] = Number.NEGATIVE_INFINITY;
+    }
+
     this.bbox_ = new Melown.BBox(minExtents_[0], minExtents_[1], minExtents_[2], maxExtents_[0], maxExtents_[1], maxExtents_[2]);
 
     this.internalTextureCount_ = streamData_.getUint8(stream_.index_, true); stream_.index_ += 1;
@@ -147,6 +177,17 @@ struct Metanode {
 */
 };
 
+Melown.MapMetanode.prototype.clone = function() {
+    var node_ = new  Melown.MapMetanode(this.metatile_, this.id_);
+    node_.flags_ = this.flags_;
+    node_.minHeight_ = this.minHeight_;
+    node_.maxHeight_ = this.maxHeight_;
+    node_.bbox_ = this.bbox_.clone();
+    node_.internalTextureCount_ = this.internalTextureCount_;
+    node_.pixelSize_ = this.pixelSize_;
+    node_.displaySize_ = this.displaySize_;
+    return node_;
+};
 
 Melown.MapMetanode.prototype.getWorldMatrix = function(geoPos_, matrix_) {
     // Note: the current camera geographic position (geoPos) is not necessary

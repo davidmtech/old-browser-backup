@@ -16,6 +16,7 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.killed_ = false;
     this.urlCounter_ = 0;
     this.config_ = config_ || {};
+    this.loaderSuspended_ = false;
 
     this.baseURL_ = path_.split('?')[0].split('/').slice(0, -1).join('/')+'/';
 
@@ -25,6 +26,7 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.srses_ = {};
     this.referenceFrame_ = {};
     this.credits_ = {};
+    this.creditsByNumber_ = {};
     this.surfaces_ = [];
     this.glues_ = [];
     this.freeLayers_ = [];
@@ -32,12 +34,19 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.dynamicLayers_ = [];
 
     this.initialView_ = null;
-    this.currentView_ = null;
+    this.currentView_ = new Melown.MapView(this, {});
+    this.currentViewString_ = "";
     this.namedViews_ = [];
     this.viewCounter_ = 0;
 
     this.surfaceSequence_ = [];
+    this.surfaceOnlySequence_ = [];
     this.boundLayerSequence_ = [];
+
+    this.visibleCredits_ = {
+      imagery_ : [],
+      mapdata_ : []
+    };
 
     this.mapTrees_ = [];
 
@@ -45,7 +54,7 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.resourcesCache_ = new Melown.MapCache(this, this.config_.mapCache_*1024*1024);
     this.metatileCache_ = new Melown.MapCache(this, this.config_.mapMetatileCache_*1024*1024);
 
-    this.loader_ = new Melown.MapLoader(this);
+    this.loader_ = new Melown.MapLoader(this, this.config_.mapDownloadThreads_);
 
     this.renderer_ = this.core_.renderer_;//new Melown.Renderer(this.core_, this.core_.div_);
     this.camera_ = this.renderer_.camera_;
@@ -74,7 +83,7 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.drawTextureSize_ = false;
     this.drawLayers_ = true;
     this.ignoreTexelSize_ = false;
-    this.drawFog_ = true;
+    this.drawFog_ = this.config_.mapFog_;
     this.debugTextSize_ = 1.0;
 
     this.drawTileState_ = this.renderer_.gpu_.createState({});
@@ -134,10 +143,47 @@ Melown.Map.prototype.setReferenceFrame = function(referenceFrame_) {
 
 Melown.Map.prototype.addCredit = function(id_, credit_) {
     this.credits_[id_] = credit_;
+    this.creditsByNumber_[credit_.id_] = credit_;
+    credit_.key_ = id_;
+};
+
+Melown.Map.prototype.getCreditByNumber = function(id_) {
+    return this.creditsByNumber_[id_];
+};
+
+Melown.Map.prototype.getCreditById = function(id_) {
+    return this.credits_[id_];
+};
+
+Melown.Map.prototype.getCredits = function() {
+    return this.getMapKeys(this.credits_);
+};
+
+Melown.Map.prototype.getVisibleCredits = function() {
+    var imagery_ = this.visibleCredits_.imagery_;
+    var imageryArray_ = []; 
+    
+    for (var key_ in imagery_) {
+        imageryArray_.push(this.creditsByNumber_[key_].key_);
+    }
+
+    var mapdata_ = this.visibleCredits_.mapdata_;
+    var mapdataArray_ = []; 
+    
+    for (var key_ in mapdata_) {
+        mapdataArray_.push(this.creditsByNumber_[key_].key_);
+    }
+
+    return {
+        "3D" : [], 
+        "imagery" : imageryArray_, 
+        "mapdata" : mapdataArray_ 
+    };
 };
 
 Melown.Map.prototype.addSurface = function(id_, surface_) {
     this.surfaces_.push(surface_);
+    surface_.index_ = this.surfaces_.length - 1; 
 };
 
 Melown.Map.prototype.getSurface = function(id_) {
@@ -202,31 +248,38 @@ Melown.Map.prototype.getMapsSrs = function(srs_) {
     return this.srses_[srs_];
 };
 
-Melown.Map.prototype.addMapView = function(id_, view_) {
+Melown.Map.prototype.addNamedView = function(id_, view_) {
     this.namedViews_[id_] = view_;
 };
 
-Melown.Map.prototype.getMapView = function(id_, view_) {
+Melown.Map.prototype.getNamedView = function(id_) {
     return this.namedViews_[id_];
 };
 
-Melown.Map.prototype.getMapViews = function() {
+Melown.Map.prototype.getNamedViews = function() {
     return this.getMapKeys(this.namedViews_);
 };
 
-Melown.Map.prototype.setMapView = function(view_) {
+Melown.Map.prototype.setView = function(view_) {
     if (view_ == null) {
         return;
     }
 
-    if (view_ != this.currentView_) {
-        this.currentView_ = view_;
+    var string_ = JSON.stringify(view_);
+    if (string_ != this.currentViewString_) {
+        this.currentView_.parse(view_);
+        this.currentViewString_ = string_;
         this.freeLayers_ = this.currentView_.freeLayers_;
         this.viewCounter_++;
     }
 
     this.generateSurfaceSequence();
     this.generateBoundLayerSequence();
+    this.dirty_ = true;
+};
+
+Melown.Map.prototype.getView = function() {
+    return this.currentView_.getInfo();
 };
 
 Melown.Map.prototype.searchArrayIndexById = function(array_, id_) {
@@ -266,48 +319,10 @@ Melown.Map.prototype.getMapKeys = function(map_) {
     }
 };
 
-Melown.Map.prototype.generateBoundLayerSequence = function() {
-    var view_ = this.currentView_;
-    var layers_ = view_.boundLayers_;
-    this.boundLayerSequence_ = [];
-
-    for (var i = 0, li = layers_.length; i < li; i++) {
-        var item_ = layers_[i];
-
-        if (typeof item_ === "string") {
-            var layer_ = this.getBoundLayerById(item_);
-        } else {
-            var layer_ = this.getBoundLayerById(item_["id"]);
-
-            if (layer_ != null && typeof item_["alpha"] !== "undefined") {
-                layer_.currentAlpha_ = item_["alpha"];
-            }
-        }
-
-        if (layer_ != null) {
-            this.boundLayerSequence_.push(layer_);
-        }
-    }
-};
-
-Melown.Map.prototype.generateSurfaceSequence = function() {
-    var view_ = this.currentView_;
-    var surfaces_ = view_.surfaces_;
-    this.surfaceSequence_ = [];
-
-    for (var i = 0, li = surfaces_.length; i < li; i++) {
-
-        //check for glue
-        if (i + 1 < li) {
-            var guleId_ = surfaces_[i].id_ + ";" + surfaces_[i+1].id_;
-            var glue_ = this.glues_[glueId_];
-
-            if (glue_ != null) {
-                this.surfaceSequence_.push(glue_);
-            }
-        }
-
-        this.surfaceSequence_.push(this.getSurface(surfaces_[i]));
+Melown.Map.prototype.getMapIds = function(map_) {
+    var keys_ = [];
+    for (var key_ in map_) {
+        keys_.push(key_.id_);
     }
 };
 
@@ -364,7 +379,7 @@ Melown.Map.prototype.setConfigParam = function(key_, value_) {
         case "mapGPUCache":                   this.config_.mapGPUCache_ = Melown.validateNumber(value_, 10, Number.MAX_INTEGER, 360); break;
         case "mapMetatileCache":              this.config_.mapMetatileCache_ = Melown.validateNumber(value_, 10, Number.MAX_INTEGER, 60); break;
         case "mapTexelSizeFit":               this.config_.mapTexelSizeFit_ = Melown.validateNumber(value_, 0.0001, Number.MAX_INTEGER, 1.1); break;
-        case "mapTexelSizeTolerance":         this.config_.mapTexelSizeTolerance_= Melown.validateNumber(value_, 0.0001, Number.MAX_INTEGER, 1.1); break;
+        case "mapTexelSizeTolerance":         this.config_.mapTexelSizeTolerance_= Melown.validateNumber(value_, 0.0001, Number.MAX_INTEGER, 2.2); break;
         case "mapDownloadThreads":            this.config_.mapDownloadThreads_ = Melown.validateNumber(value_, 1, Number.MAX_INTEGER, 6); break;
         case "mapMaxProcessedMeshes":         this.config_.mapMaxProcessedMeshes_ = Melown.validateNumber(value_, 1, Number.MAX_INTEGER, 1); break;
         case "mapMaxProcessedTextures":       this.config_.mapMaxProcessedTextures_ = Melown.validateNumber(value_, 1, Number.MAX_INTEGER, 1); break;
@@ -372,6 +387,7 @@ Melown.Map.prototype.setConfigParam = function(key_, value_) {
         case "mapMobileMode":                 this.config_.mapMobileMode_ = Melown.validateBool(value_, false); break;
         case "mapMobileTexelDegradation":     this.config_.mapMobileTexelDegradation_ = Melown.validateNumber(value_, 1, Number.MAX_INTEGER, 2); break;
         case "mapNavSamplesPerViewExtent":    this.config_.mapNavSamplesPerViewExtent_ = Melown.validateNumber(value_, 1, Number.MAX_INTEGER, 10); break;
+        case "mapFog":                        this.config_.mapFog_ = Melown.validateBool(value_, false); break;
     }
 };
 
@@ -390,6 +406,7 @@ Melown.Map.prototype.getConfigParam = function(key_) {
         case "mapMobileMode":                 return this.config_.mapMobileMode_;
         case "mapMobileTexelDegradation":     return this.config_.mapMobileTexelDegradation_;
         case "mapNavSamplesPerViewExtent":    return this.config_.mapNavSamplesPerViewExtent_;
+        case "mapFog":                        return this.config_.mapFog_;
     }
 };
 
@@ -400,8 +417,14 @@ Melown.Map.prototype.markDirty = function() {
 Melown.Map.prototype.drawMap = function() {
     this.renderer_.gpu_.setViewport();
 
+    this.visibleCredits_ = {
+      imagery_ : [],
+      mapdata_ : []
+    };
+
     this.updateCamera();
     this.renderer_.dirty_ = true;
+    this.renderer_.drawFog_ = this.drawFog_;
 
     //this.cameraPosition_ = this.renderer_.cameraPosition();
 
@@ -421,7 +444,7 @@ Melown.Map.prototype.drawMap = function() {
 };
 
 Melown.Map.prototype.update = function() {
-    if (this.killed_ == true){
+    if (this.killed_ == true) {
         return;
     }
 
@@ -446,7 +469,9 @@ Melown.Map.prototype.update = function() {
         this.dirty_ = true;
     }
 
-    this.loader_.update();
+    if (!this.loaderSuspended_) {
+        this.loader_.update();
+    }
 
     if (this.dirty_) {
         this.dirty_ = false;

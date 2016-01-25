@@ -21,7 +21,7 @@ Melown.Map.prototype.parseConfig = function() {
         this.setPosition(this.mapConfig_["position"], false);
     }
 
-    this.setMapView(this.initialView_);
+    this.setView(this.initialView_);
 };
 
 Melown.Map.prototype.parseSrses = function() {
@@ -94,24 +94,33 @@ Melown.Map.prototype.parseViews = function() {
 
     if (views_ != null) {
         for (var key_ in views_) {
-            this.addView(key_, new Melown.MapView(this, views_[key_]));
+            this.addNamedView(key_, new Melown.MapView(this, views_[key_]));
         }
     }
 
     var view_ = this.mapConfig_["view"];
-
     if (view_ == null) {
         return true;
     }
 
-    this.initialView_ = new Melown.MapView(this, view_);
-    this.currentView_ = null;
+    //view_["surfaces"] = { "jenstejn-hf" : [], "jenstejn2015" : [], "jenstejn" : [] }; 
+    //view_["surfaces"] = { "jenstejn-hf" : [{"id":"mapycz-basic"}], "jenstejn2015" : [], "jenstejn" : [] }; 
+
+    //view_["surfaces"] = ["jenstejn-hf", "jenstejn2015", "jenstejn"]; 
+    //view_["surfaces"] = ["jenstejn-hf", "jenstejn2015"]; 
+    //view_["surfaces"] = ["jenstejn-hf", "jenstejn"]; 
+    //view_["surfaces"] = ["jenstejn-hf"]; 
+    //view_["surfaces"] = ["jenstejn2015"]; 
+    //view_["surfaces"] = ["jenstejn"]; 
+
+    this.initialView_ = JSON.parse(JSON.stringify(view_));//new Melown.MapView(this, view_);
+    //this.currentView_ = null;
 
     return true;
 };
 
 Melown.Map.prototype.parseGlues = function() {
-    var glues_ = this.mapConfig_["glues"];
+    var glues_ = this.mapConfig_["glue"];
     this.glues_ = [];
 
     if (glues_ == null) {
@@ -119,7 +128,7 @@ Melown.Map.prototype.parseGlues = function() {
     }
 
     for (var i = 0, li = glues_.length; i < li; i++) {
-        var surface_ = new Melown.MapGlue(this, glues_[i]);
+        var surface_ = new Melown.MapGlue(this, glues_[i], true);
         this.addGlue(surface_.id_.join(";"), surface_);
     }
 
