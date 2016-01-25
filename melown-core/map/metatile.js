@@ -35,6 +35,12 @@ Melown.MapMetatile.prototype.kill = function(killedByCache_) {
 };
 
 Melown.MapMetatile.prototype.isReady = function () {
+    //if (this.id_[0] == 18 &&
+    //    this.id_[1] == 130400 &&
+    //    this.id_[2] == 129088) {
+    //    debugger;
+    //}
+
     if (this.loadState_ == 2) { //loaded
         return true;
     } else {
@@ -58,6 +64,11 @@ Melown.MapMetatile.prototype.used = function() {
 Melown.MapMetatile.prototype.getNode = function(id_) {
     var x = id_[1] - this.id_[1] - this.offsetx_;
     var y = id_[2] - this.id_[2] - this.offsety_;
+    
+    if (x < 0 || y < 0 || x >= this.sizex_ || y >= this.sizey_) {
+        return null;
+    }
+    
     return this.nodes_[this.sizex_ * y + x];
 };
 
@@ -172,13 +183,11 @@ Melown.MapMetatile.prototype.parseMetatatileCredits = function(stream_) {
     }
 
     //rounded to bytes
-    var sizex8_ = ((this.sizex_+7) >> 3) << 3;
-
-    var bitfieldSize_ = ((this.sizex8_ * this.sizey_) >> 3);
+    var bitfieldSize_ = ((this.sizex_ * this.sizey_ + 7) >> 3);
 
     this.credits_ = new Array(this.creditCount_);
 
-    for (var i = 0; i < this.creditsCount_; i++) {
+    for (var i = 0, li = this.credits_.length; i < li; i++) {
         var creditId_ = streamData_.getUint16(stream_.index_, true); stream_.index_ += 2;
         var bitfield_ = new Uint8Array(bitfieldSize_);
 
@@ -191,15 +200,35 @@ Melown.MapMetatile.prototype.parseMetatatileCredits = function(stream_) {
 
 };
 
+Melown.MapMetatile.prototype.applyMetatatileCredits = function() {
+    for (var y = 0; y < this.sizey_; y++) {
+        for (var x = 0; x < this.sizex_; x++) {
+            var byteIndex_ = this.sizex_ * y + x;
+            var bitIndex_ = byteIndex_ & 7;
+            var bitMask_ = 1 << bitIndex_;
+            byteIndex_ >>= 3;
+
+            for (var i = 0, li = this.credits_.length; i < li; i++) {
+                if (this.credits_[i].creditMask_[byteIndex_] & bitMask_) {
+                    this.nodes_[y*this.sizex_+x].credits_.push(this.credits_[i].creditId_);
+                }
+            }
+             
+        }
+    }
+};
+
 Melown.MapMetatile.prototype.parseMetatatileNodes = function(stream_) {
     this.nodes_ = new Array(this.sizex_*this.sizey_);
     var index_ = 0;
 
     for (var y = 0; y < this.sizey_; y++) {
         for (var x = 0; x < this.sizex_; x++) {
-            this.nodes_[index_] = (new Melown.MapMetanode(this, [this.lod_, this.metatileIdx_ + x, this.metatileIdy_ + y], stream_));
+            this.nodes_[index_] = (new Melown.MapMetanode(this, [this.lod_, this.metatileIdx_ + this.offsetx_ + x, this.metatileIdy_ + this.offsety_ + y], stream_));
             index_++;
         }
     }
+    
+    this.applyMetatatileCredits();
 };
 

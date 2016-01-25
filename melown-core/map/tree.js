@@ -19,6 +19,7 @@ Melown.MapTree = function(map_, divisionNode_, freeLayer_) {
         this.heightTracer_ = new Melown.MapMetanodeTracer(this, null, this.traceSurfaceTileHeight.bind(this));
     }
 
+    this.config_ = this.map_.config_;
     this.cameraPos_ = [0,0,0];
     this.worldPos_ = [0,0,0];
     this.ndcToScreenPixel_ = 1.0;
@@ -66,7 +67,7 @@ Melown.MapTree.prototype.drawSurface = function(shift_) {
     this.surfaceTracer_.trace(this.rootId_);
 };
 
-Melown.MapTree.prototype.traceSurfaceTile = function(tile_, params_) {
+Melown.MapTree.prototype.traceSurfaceTile = function(tile_, params_, reducedProcessing_) {
     if (tile_ == null || tile_.metanode_ == null) {
         return false;
     }
@@ -74,10 +75,53 @@ Melown.MapTree.prototype.traceSurfaceTile = function(tile_, params_) {
     var node_ = tile_.metanode_;
     var cameraPos_ = this.map_.cameraPosition_;
 
+    var log2_ = false; //this.map_.drawBBoxes_;        
+
+    if (log2_) {
+        console.log("--------------------------------------------");
+        console.log("draw-tile: id: " + JSON.stringify(node_.id_));
+        console.log("surafce: id: " + tile_.surface_.id_);
+        
+        var vs = tile_.virtualSurfaces_;
+        var s = "";
+        for (var i = 0, li = vs.length; i < li; i++) {
+            s += vs[i].id_ + "|";
+        }
+        
+        console.log("bbox: " + JSON.stringify(node_.bbox_));
+        console.log("tcount: " + node_.internalTextureCount_);
+        console.log("glue: " + tile_.surface_.glue_);
+        console.log("geometry: " + node_.hasGeometry());
+        console.log("children: " + node_.hasChildren());
+        console.log("tsize: " + node_.pixelSize_);
+        console.log("virtual: " + tile_.virtual_ + " " + s);
+    }
+    
+    //Melown.Map.prototype.drawTileInfo = function(tile_, node_, cameraPos_, mesh_, pixelSize_) {
+    var log_ = false;        
+
+    if (log_) {
+        console.log("--------------------------------------------");
+        console.log("draw-tile: id: " + JSON.stringify(node_.id_));
+        console.log("surafce: id: " + tile_.surface_.id_);
+        console.log("bbox: " + JSON.stringify(node_.bbox_));
+        console.log("flags: " + JSON.stringify(node_.flags_));
+        console.log("tcount: " + node_.internalTextureCount_);
+        console.log("tsize: " + node_.pixelSize_);
+    }
+
+    //if (node_.id_[0] == 13) {
+      //  this.map_.drawTileInfo(tile_, node_, cameraPos_, tile_.surfaceMesh_, pixelSize_);
+    //}
+
     if (this.camera_.bboxVisible(node_.bbox_, cameraPos_) != true) {
         return false;
         //return true;
     }
+
+    if (log2_) { console.log("visible"); }
+
+    if (log_) { console.log("draw-tile: visible"); }
 
     var pixelSize_;
 
@@ -100,26 +144,65 @@ Melown.MapTree.prototype.traceSurfaceTile = function(tile_, params_) {
         pixelSize_ = [Number.POSITIVE_INFINITY, 99999];
     }
 
-
-    if (node_.hasChildren() == false || pixelSize_[0] < 1.1) {
-
-        this.map_.drawSurfaceTile(tile_, node_, cameraPos_, pixelSize_);
-
-        return false;
+    if (log_) {
+        console.log("draw-tile: children=="  + node_.hasChildren());
+        console.log("draw-tile: psize=="  + pixelSize_[0]);
     }
 
-    return true;
+    //if (node_.id_[0] == 14) {
+        //debugger;
+    //}
+
+    //if (log2_ && node_.id_[0] == 11) { 
+        //debugger;
+    //}
+
+
+    if (node_.hasChildren() == false || pixelSize_[0] < this.config_.mapTexelSizeFit_) {
+
+        if (log2_) { console.log("drawn"); }
+        if (log_) { console.log("draw-tile: drawn"); }
+
+        this.map_.drawSurfaceTile(tile_, node_, cameraPos_, pixelSize_, reducedProcessing_);
+
+        return false;
+        
+    } else if (node_.hasGeometry() && pixelSize_[0] < this.config_.mapTexelSizeTolerance_) {
+        return [true, false];
+        
+        var childrenReady_ = true;
+        
+        //are children ready?   
+        for (var i = 0; i < 4; i++) {
+            if (tile_.children_[i]) {
+                if (!tile_.children_[i].renderReady_) {
+                    childrenReady_ = false;
+                }
+            }
+        }
+        
+        //if children are not ready then draw coarser lod
+        if (childrenReady_) {
+            return [false, reducedProcessing_];
+        } else {
+            //draw coarsed load and continue tracing children but do not draw them
+            this.map_.drawSurfaceTile(tile_, node_, cameraPos_, pixelSize_, true);            
+            return [true, true];
+        }
+    }
+
+    return [true, reducedProcessing_];
 };
 
-Melown.MapTree.prototype.traceSurfaceTileHeight = function(tile_, params_) {
+Melown.MapTree.prototype.traceSurfaceTileHeight = function(tile_, params_, reducedProcessing_) {
     if (tile_ == null || tile_.id_[0] > params_.desiredLod_) {
-        return false;
+        return [false, reducedProcessing_];
     }
 
     var node_ = tile_.metanode_;
 
     if (node_ == null) {
-        return false;
+        return [false, reducedProcessing_];
     }
 
     if (node_.hasNavtile()) {
@@ -128,21 +211,27 @@ Melown.MapTree.prototype.traceSurfaceTileHeight = function(tile_, params_) {
             tile_.heightMap_ = new Melown.MapTexture(this.map_, path_, true);
         } else {
             if (tile_.heightMap_.isReady() == true) {
+                params_.parent_ = {
+                    metanode_ : params_.metanode_,
+                    heightMap_ : params_.heightMap_,
+                    heightMapExtents_ : params_.heightMapExtents_
+                };
+                
                 params_.metanode_ =  node_;
                 params_.heightMap_ = tile_.heightMap_;
                 params_.heightMapExtents_ = {
                     ll_ : params_.extents_.ll_.slice(),
                     ur_ : params_.extents_.ur_.slice()
                 };
-                return true;
+                return [true, reducedProcessing_];
             }
         }
     } else {
         params_.metanode_ =  node_;
-        return true;
+        return [true, reducedProcessing_];
     }
 
-    return false;
+    return [false, reducedProcessing_];
 };
 
 

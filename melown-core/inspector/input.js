@@ -197,7 +197,39 @@ Melown.Inspector.prototype.onKeyUp = function(event_, press_) {
                        map_.setPosition(pos_);
                        */
 
-                        map_.camera_.setParams(map_.camera_.getFov(), 2000, 200000000);
+                        //map_.camera_.setParams(map_.camera_.getFov(), 2000, 200000000);
+                        var view_ = map_.getView();
+                        
+                        /*
+                        view_["surfaces"] = {
+                            "jenstejn-hf" : [],
+                            //{"id":"mapycz-pp"},
+                            //{"id":"mapycz-orto06"}//,
+                            //{"id":"mapycz-orto03", "alpha": this.debugValue_}
+                            //{"id":"mapycz-basic", "alpha": this.debugValue_}
+                            //],
+                            //"jenstejn2015" : []//,
+                            "jenstejn" : []
+                        };*/ 
+                        
+                        this.debugValue_ += 0.1;
+                        this.debugValue_ %= 1;
+
+                        /*view_["surfaces"] = { "jenstejn-hf" : [], "jenstejn" : [] };*/ 
+
+                        if (map_.hackBounds_ && map_.hackBounds2_) {
+                            map_.hackBounds_ = 120;
+                            map_.hackBounds2_ = null;
+                        } else {
+                            if (map_.hackBounds_ != 121) {
+                                map_.hackBounds_ = 121;
+                            } else {
+                                map_.hackBounds2_ = 122;
+                            }
+                        }
+                        
+                        map_.setView(view_, true);
+                        
                         
                         break; //key V pressed
 
