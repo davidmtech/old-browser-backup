@@ -11,10 +11,12 @@ Melown.MapCache = function(map_, maxCost_) {
     this.totalItems_ = 0;
 };
 
-Melown.MapCache.prototype.updateItem = function(item_) {
+Melown.MapCache.prototype.updateItem = function(item_, priority_) {
     if (item_ == null) {
         return;
     }
+    
+    item_.priority_ = priority_;
 
     if (this.first_ == item_) {
         return;
@@ -69,12 +71,12 @@ Melown.MapCache.prototype.clear = function() {
     this.totalItems_ = 0;
 };
 
-Melown.MapCache.prototype.insert = function(destructor_, cost_) {
+Melown.MapCache.prototype.insert = function(destructor_, cost_, priority_) {
     this.totalItems_++;
 
     //console.log("insert: " + hash_ + " items: " + this.totalItems_);
 
-    var item_ = { destructor_:destructor_, cost_:cost_, prev_: null, next_:this.first_ };
+    var item_ = { destructor_:destructor_, cost_:cost_, prev_: null, next_:this.first_, priority_: priority_ };
 
     if (this.first_ != null) {
         this.first_.prev_ = item_;
@@ -147,6 +149,11 @@ Melown.MapCache.prototype.remove = function(item_) {
 
 
 Melown.MapCache.prototype.checkCost = function() {
+    if (this.map_.stats_.gpuRenderUsed_ >= this.map_.maxGpuUsed_) {
+        this.checkCostByPriority();
+        return;
+    }
+
     while (this.totalCost_ > this.maxCost_) {
 
         this.totalItems_--;
@@ -171,6 +178,28 @@ Melown.MapCache.prototype.checkCost = function() {
         } else {
             break;
         }
+    }
+};
+
+Melown.MapCache.prototype.checkCostByPriority = function() {
+    while (this.totalCost_ > this.maxCost_) {
+
+        this.totalItems_--;
+
+        //get item with higher priority number 
+        //this is unintuitive bigger number means lower priority 
+        var item_ = this.first_;
+        var itemToRemve_ = this.first_;
+
+        while (item_ != null) {
+            if (item_.priority_ > itemToRemve_.priority_) {
+                itemToRemve_ = item_;
+            }
+            
+            item_ = item_.next_;
+        }
+
+        this.removeItem(itemToRemve_);
     }
 };
 

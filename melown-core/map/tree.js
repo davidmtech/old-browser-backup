@@ -13,7 +13,7 @@ Melown.MapTree = function(map_, freeLayer_) {
     this.surfaceTree_ = new Melown.MapTile(this.map_, null, this.rootId_);
     this.metastorageTree_ = new Melown.MapMetastorage(this.map_, null, this.rootId_);
 
-    this.surfaceTracer_ = new Melown.MapMetanodeTracer(this, null, this.traceTileRender.bind(this), this.traceChildSequenceViewBased.bind(this));
+    this.surfaceTracer_ = new Melown.MapMetanodeTracer(this, null, this.traceTileRender.bind(this), this.traceChildSequenceViewBased.bind(this), this.traceTileRender22.bind(this));
 
     //used only for debug
     this.surfaceTracerBasic_ = new Melown.MapMetanodeTracer(this, null, this.traceTileRender.bind(this), this.traceChildSequenceBasic.bind(this));
@@ -117,7 +117,8 @@ Melown.MapTree.prototype.traceChildSequenceBasic = function(tile_) {
 
 Melown.MapTree.prototype.traceChildSequenceViewBased = function(tile_) {
     var angles_ = [];
-    var camPos_ = this.map_.cameraCenter_;//this.map_.cameraPosition_;  
+    //var camPos_ = this.map_.cameraCenter_;//this.map_.cameraPosition_;  
+    var camPos_ = this.map_.cameraPosition_;  
     var camVec_ = this.map_.cameraVector_;
     
     for (var i = 0; i < 4; i++) {
@@ -167,7 +168,7 @@ Melown.MapTree.prototype.traceChildSequenceViewBased = function(tile_) {
 
 Melown.MapTree.prototype.traceTileRender = function(tile_, params_, childrenSequence_, priority_, preventRedener_, preventLoad_) {
     if (tile_ == null || tile_.metanode_ == null) {
-        return [false, preventRedener_, preventLoad_];
+        return [false, preventRedener_, preventLoad_, [Number.POSITIVE_INFINITY, 99999]];
     }
 
     var node_ = tile_.metanode_;
@@ -255,7 +256,7 @@ Melown.MapTree.prototype.traceTileRender = function(tile_, params_, childrenSequ
         //debugger;
     //}
 
-
+/* old
     if (node_.hasChildren() == false || pixelSize_[0] < this.config_.mapTexelSizeFit_) {
 
         if (log2_) { console.log("drawn"); }
@@ -281,10 +282,69 @@ Melown.MapTree.prototype.traceTileRender = function(tile_, params_, childrenSequ
             return [true, true, preventLoad_];
         }
     }
+*/
+//new 
+    if (node_.hasChildren() == false || pixelSize_[0] < this.config_.mapTexelSizeFit_) {
+        //this.map_.drawSurfaceTile(tile_, node_, cameraPos_, pixelSize_, priority_, preventRedener_, preventLoad_);
+        return [false, preventRedener_, preventLoad_, pixelSize_];
+    }
+
+
+    //continue to more detailed lods
+    return [true, preventRedener_, preventLoad_, pixelSize_];
+};
+
+Melown.MapTree.prototype.traceTileRender22 = function(tile_, params_, childrenSequence_, pixelSize_, priority_, preventRedener_, preventLoad_) {
+    if (tile_ == null || tile_.metanode_ == null) {
+        return;
+    }
+
+    var node_ = tile_.metanode_;
+    var cameraPos_ = this.map_.cameraPosition_;
+
+    if (this.bboxVisible(tile_.id_, node_.bbox_, cameraPos_) != true) {
+        return;
+    }
+
+
+    if (!node_.hasGeometry()) {
+        return;
+    }
+
+    this.map_.drawSurfaceTile(tile_, node_, cameraPos_, pixelSize_, priority_, preventRedener_, preventLoad_);
+
+/*
+    if (node_.hasChildren() == false || pixelSize_[0] < this.config_.mapTexelSizeFit_) {
+
+        if (log2_) { console.log("drawn"); }
+        if (log_) { console.log("draw-tile: drawn"); }
+
+          
+        if (this.config_.mapAllowHires_ && this.canDrawDetailedLod(tile_)) {
+            this.map_.drawSurfaceTile(tile_, node_, cameraPos_, pixelSize_, priority_, preventRedener_, true);
+            return [true, preventRedener_, true];
+        } else {
+            this.map_.drawSurfaceTile(tile_, node_, cameraPos_, pixelSize_, priority_, preventRedener_, preventLoad_);
+        }
+
+        return [false, preventRedener_, preventLoad_];
+        
+    } else if (this.config_.mapAllowLowres_ && node_.hasGeometry() && pixelSize_[0] < this.config_.mapTexelSizeTolerance_) {
+        //return [true, preventRedener_];
+        
+        //if children are not ready then draw coarser lod
+        if (this.canDrawCoarserLod(tile_, node_, cameraPos_, childrenSequence_, priority_)) {
+            //draw coarsed load and continue tracing children but do not draw them
+            this.map_.drawSurfaceTile(tile_, node_, cameraPos_, pixelSize_, priority_, preventRedener_, preventLoad_);            
+            return [true, true, preventLoad_];
+        }
+    }
 
     //continue to more detailed lods
     return [true, preventRedener_, preventLoad_];
+    */
 };
+
 
 Melown.MapTree.prototype.canDrawDetailedLod = function(tile_, priority_) {
     if (tile_.lastRenderState_) {
@@ -334,14 +394,54 @@ Melown.MapTree.prototype.bboxVisible = function(id_, bbox_, cameraPos_) {
         var cv_ = this.map_.cameraVector_;
         var bmax_ = bbox_.max_;
         var bmin_ = bbox_.min_;
+        var factor_ = 1;
         
         if (id_[0] < 5) factor_ = 0.4;
         if (id_[0] >= 5) factor_ = 0.9;
         //if (id_[0] >= 6) factor_ = 0.9;
         //if (id_[0] >= 9) factor_ = 0.9;
-
+        
         var edge_ = -Math.min(0.7, Math.sin(Melown.radians(this.map_.camera_.getFov()*factor_)));
         //var edge_ = -Math.min(0.7, Math.sin(Melown.radians(this.map_.camera_.getFov()*Math.min(1,(id_[0]*1.7+2)/12))));
+
+        if (id_[0] == 5 && id_[1] == 2 && id_[2] == 5) {
+            id_ = id_;
+        }
+
+
+        if (id_[0] >= 5){
+            factor_ = 1.5;
+
+            if (this.map_.cameraDistance_ < 5000000) {
+                factor_ = 0.9;
+            }
+
+            if (this.map_.cameraDistance_ < 2000000) {
+                factor_ = 0.7;
+            }
+
+            if (this.map_.cameraDistance_ < 1000000) {
+                factor_ = 0.5;
+            }
+    
+            if (this.map_.cameraDistance_ < 100000) {
+                factor_ = 0.40;
+            }
+
+            edge_ = Math.cos(Melown.radians(180 - Math.min(180, this.map_.camera_.getFov()*factor_)));
+
+             //edge_ = -0.991;
+        }
+
+        var v1 = Melown.vec3.dot(cv_, Melown.vec3.normalize([bmax_[0], bmax_[1], bmax_[2]]));
+        var v2 = Melown.vec3.dot(cv_, Melown.vec3.normalize([bmin_[0], bmax_[1], bmax_[2]]));
+        var v3 = Melown.vec3.dot(cv_, Melown.vec3.normalize([bmax_[0], bmin_[1], bmax_[2]]));
+        var v4 = Melown.vec3.dot(cv_, Melown.vec3.normalize([bmin_[0], bmin_[1], bmax_[2]]));
+
+        var v5 = Melown.vec3.dot(cv_, Melown.vec3.normalize([bmax_[0], bmax_[1], bmin_[2]]));
+        var v6 = Melown.vec3.dot(cv_, Melown.vec3.normalize([bmin_[0], bmax_[1], bmin_[2]]));
+        var v7 = Melown.vec3.dot(cv_, Melown.vec3.normalize([bmax_[0], bmin_[1], bmin_[2]]));
+        var v8 = Melown.vec3.dot(cv_, Melown.vec3.normalize([bmin_[0], bmin_[1], bmin_[2]]));
         
         //var v = bbox_.center();
         

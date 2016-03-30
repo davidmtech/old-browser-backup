@@ -58,7 +58,7 @@ Melown.MapTexture.prototype.killGpuTexture = function(killedByCache_) {
 
 Melown.MapTexture.prototype.isReady = function(doNotLoad_, priority_) {
     if (this.loadState_ == 2) { //loaded
-        this.map_.resourcesCache_.updateItem(this.cacheItem_);
+        this.map_.resourcesCache_.updateItem(this.cacheItem_, priority_);
 
         if (this.heightMap_) {
             if (this.imageData_ == null) {
@@ -80,11 +80,11 @@ Melown.MapTexture.prototype.isReady = function(doNotLoad_, priority_) {
                 //}
 
                 var t = performance.now();
-                this.buildGpuTexture();
+                this.buildGpuTexture(priority_);
                 this.stats_.renderBuild_ += performance.now() - t; 
             }
 
-            this.map_.gpuCache_.updateItem(this.gpuCacheItem_);
+            this.map_.gpuCache_.updateItem(this.gpuCacheItem_, priority_);
         }
         return true;
     } else {
@@ -142,7 +142,7 @@ Melown.MapTexture.prototype.onLoaded = function(data_) {
     this.mapLoaderCallLoaded_();
 };
 
-Melown.MapTexture.prototype.buildGpuTexture = function () {
+Melown.MapTexture.prototype.buildGpuTexture = function(priority_) {
     this.gpuTexture_ = new Melown.GpuTexture(this.map_.renderer_.gpu_, null, this.map_.core_);
     this.gpuTexture_.createFromImage(this.image_, "linear", false);
     this.stats_.gpuTextures_ += this.gpuTexture_.size_;
@@ -150,7 +150,7 @@ Melown.MapTexture.prototype.buildGpuTexture = function () {
     this.stats_.graphsFluxTexture_[0][0]++;
     this.stats_.graphsFluxTexture_[0][1] += this.gpuTexture_.size_;
 
-    this.gpuCacheItem_ = this.map_.gpuCache_.insert(this.killGpuTexture.bind(this, true), this.gpuTexture_.size_);
+    this.gpuCacheItem_ = this.map_.gpuCache_.insert(this.killGpuTexture.bind(this, true), this.gpuTexture_.size_, priority_);
 };
 
 Melown.MapTexture.prototype.buildHeightMap = function () {

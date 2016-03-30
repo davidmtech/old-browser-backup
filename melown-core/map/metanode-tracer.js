@@ -1,7 +1,7 @@
 /**
  * @constructor
  */
-Melown.MapMetanodeTracer = function(mapTree_, surface_, nodeProcessingFunction_, childSelectingFunction_) {
+Melown.MapMetanodeTracer = function(mapTree_, surface_, nodeProcessingFunction_, childSelectingFunction_, nodeProcessingFunction2_) {
     this.map_ = mapTree_.map_;
     this.surfaceTree_ = mapTree_.surfaceTree_;
     this.metastorageTree_ = mapTree_.metastorageTree_;
@@ -10,6 +10,7 @@ Melown.MapMetanodeTracer = function(mapTree_, surface_, nodeProcessingFunction_,
     this.surface_ = surface_; //????
     this.nodeProcessingFunction_ = nodeProcessingFunction_;
     this.childSelectingFunction_ = childSelectingFunction_;
+    this.nodeProcessingFunction2_ = nodeProcessingFunction2_;
     this.params_ = null;
 };
 
@@ -19,7 +20,7 @@ Melown.MapMetanodeTracer.prototype.trace = function(tile_, params_) {
     this.traceTile(tile_, 0);
 };
 
-Melown.MapMetanodeTracer.prototype.traceTile = function(tile_, priority_, processFlag_, processFlag2_) {
+Melown.MapMetanodeTracer.prototype.traceTile = function(tile_, priority_, processFlag_, processFlag2_, processFlag3_) {
     if (tile_ == null) {
         return;
     }
@@ -45,7 +46,7 @@ Melown.MapMetanodeTracer.prototype.traceTile = function(tile_, priority_, proces
         }
     }
         
-    if (!processFlag2_) {
+    if (true) { //!processFlag2_ || processFlag3_) {
     
         //provide surface for tile
         if (tile_.surface_ == null && tile_.virtualSurfaces_.length == 0) {
@@ -96,17 +97,36 @@ Melown.MapMetanodeTracer.prototype.traceTile = function(tile_, priority_, proces
     }
     
     //process tile e.g. draw or get height
-    var res_ = this.nodeProcessingFunction_(tile_, this.params_, childrenSequence_, priority_, processFlag_, processFlag2_); 
+    if (!(this.params_ && this.params_.traceHeight_)) {
+        var res_ = this.nodeProcessingFunction_(tile_, this.params_, childrenSequence_, priority_, processFlag_, processFlag2_); 
+        
+        if (res_[0] == true) { //we need to go deeper
+            if (!childrenSequence_) { //get height path only
+                childrenSequence_ = this.childSelectingFunction_(tile_, this.params_);
+            }
     
-    if (res_[0] == true) { //we need to go deeper
-        if (!childrenSequence_) { //get height path only
-            childrenSequence_ = this.childSelectingFunction_(tile_, this.params_);
+            for (var i = 0, li = childrenSequence_.length; i < li; i++) {
+                this.traceTile(tile_.children_[childrenSequence_[i][0]], childrenSequence_[i][1], processFlag_, processFlag2_);
+            }
+
+        } else {
+            this.nodeProcessingFunction2_(tile_, this.params_, childrenSequence_, res_[3], priority_, processFlag_, processFlag2_); 
         }
 
-        for (var i = 0, li = childrenSequence_.length; i < li; i++) {
-            this.traceTile(tile_.children_[childrenSequence_[i][0]], childrenSequence_[i][1], res_[1], res_[2]);
+    } else {
+        var res_ = this.nodeProcessingFunction_(tile_, this.params_, childrenSequence_, priority_, processFlag_, processFlag2_); 
+        
+        if (res_[0] == true) { //we need to go deeper
+            if (!childrenSequence_) { //get height path only
+                childrenSequence_ = this.childSelectingFunction_(tile_, this.params_);
+            }
+    
+            for (var i = 0, li = childrenSequence_.length; i < li; i++) {
+                this.traceTile(tile_.children_[childrenSequence_[i][0]], childrenSequence_[i][1], res_[1], res_[2]);
+            }
         }
     }
+
 };
 
 Melown.MapMetanodeTracer.prototype.checkTileSurface = function(tile_, priority_) {
