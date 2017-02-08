@@ -632,10 +632,14 @@ Melown.MapSurfaceTile.prototype.bboxVisible = function(id_, bbox_, cameraPos_, n
 Melown.MapSurfaceTile.prototype.getPixelSize = function(bbox_, screenPixelSize_, cameraPos_, worldPos_, returnDistance_) {
     var min_ = bbox_.min_;
     var max_ = bbox_.max_;
-    var tilePos_ = [min_[0] - cameraPos_[0], min_[1] - cameraPos_[1]];
-    var tilePos2_ = [max_[0] - cameraPos_[0], min_[1] - cameraPos_[1]];
-    var tilePos3_ = [max_[0] - cameraPos_[0], max_[1] - cameraPos_[1]];
-    var tilePos4_ = [min_[0] - cameraPos_[0], max_[1] - cameraPos_[1]];
+    var tilePos1x_ = min_[0] - cameraPos_[0];
+    var tilePos1y_ = min_[1] - cameraPos_[1];
+    var tilePos2x_ = max_[0] - cameraPos_[0];
+    var tilePos2y_ = min_[1] - cameraPos_[1];
+    var tilePos3x_ = max_[0] - cameraPos_[0];
+    var tilePos3y_ = max_[1] - cameraPos_[1];
+    var tilePos4x_ = min_[0] - cameraPos_[0];
+    var tilePos4y_ = max_[1] - cameraPos_[1];
     var h1_ = min_[2] - cameraPos_[2];
     var h2_ = max_[2] - cameraPos_[2];
     
@@ -657,82 +661,82 @@ Melown.MapSurfaceTile.prototype.getPixelSize = function(bbox_, screenPixelSize_,
     var camera_ = this.map_.camera_;
 
     //find bbox sector
-    if (0 < tilePos_[1]) { //top row - zero means camera position in y
-        if (0 < tilePos_[0]) { // left top corner
+    if (0 < tilePos1y_) { //top row - zero means camera position in y
+        if (0 < tilePos1x_) { // left top corner
             if (0 > h2_) { // hi
-                factor_ = camera_.scaleFactor([tilePos_[0], tilePos_[1], h2_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos1x_, tilePos1y_, h2_], returnDistance_);
             } else if (0 < h1_) { // low
-                factor_ = camera_.scaleFactor([tilePos_[0], tilePos_[1], h1_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos1x_, tilePos1y_, h1_], returnDistance_);
             } else { // middle
-                factor_ = camera_.scaleFactor([tilePos_[0], tilePos_[1], (h1_ + h2_)*0.5], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos1x_, tilePos1y_, (h1_ + h2_)*0.5], returnDistance_);
             }
-        } else if (0 > tilePos2_[0]) { // right top corner
+        } else if (0 > tilePos2x_) { // right top corner
             if (0 > h2_) { // hi
-                factor_ = camera_.scaleFactor([tilePos2_[0], tilePos2_[1], h2_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos2x_, tilePos2y_, h2_], returnDistance_);
             } else if (0 < h1_) { // low
-                factor_ = camera_.scaleFactor([tilePos2_[0], tilePos2_[1], h1_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos2x_, tilePos2y_, h1_], returnDistance_);
             } else { // middle
-                factor_ = camera_.scaleFactor([tilePos2_[0], tilePos2_[1], (h1_ + h2_)*0.5], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos2x_, tilePos2y_, (h1_ + h2_)*0.5], returnDistance_);
             }
         } else { //top side
             if (0 > h2_) { // hi
-                factor_ = camera_.scaleFactor([(tilePos_[0] + tilePos2_[0])*0.5, tilePos2_[1], h2_], returnDistance_);
+                factor_ = camera_.scaleFactor([(tilePos1x_ + tilePos2x_)*0.5, tilePos2y_, h2_], returnDistance_);
             } else if (0 < h1_) { // low
-                factor_ = camera_.scaleFactor([(tilePos_[0] + tilePos2_[0])*0.5, tilePos2_[1], h1_], returnDistance_);
+                factor_ = camera_.scaleFactor([(tilePos1x_ + tilePos2x_)*0.5, tilePos2y_, h1_], returnDistance_);
             } else { // middle
-                factor_ = camera_.scaleFactor([(tilePos_[0] + tilePos2_[0])*0.5, tilePos2_[1], (h1_ + h2_)*0.5], returnDistance_);
+                factor_ = camera_.scaleFactor([(tilePos1x_ + tilePos2x_)*0.5, tilePos2y_, (h1_ + h2_)*0.5], returnDistance_);
             }
         }
-    } else if (0 > tilePos4_[1]) { //bottom row
-        if (0 < tilePos4_[0]) { // left bottom corner
+    } else if (0 > tilePos4y_) { //bottom row
+        if (0 < tilePos4x_) { // left bottom corner
             if (0 > h2_) { // hi
-                factor_ = camera_.scaleFactor([tilePos4_[0], tilePos4_[1], h2_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos4x_, tilePos4y_, h2_], returnDistance_);
             } else if (0 < h1_) { // low
-                factor_ = camera_.scaleFactor([tilePos4_[0], tilePos4_[1], h1_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos4x_, tilePos4y_, h1_], returnDistance_);
             } else { // middle
-                factor_ = camera_.scaleFactor([tilePos4_[0], tilePos4_[1], (h1_ + h2_)*0.5], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos4x_, tilePos4y_, (h1_ + h2_)*0.5], returnDistance_);
             }
-        } else if (0 > tilePos3_[0]) { // right bottom corner
+        } else if (0 > tilePos3x_) { // right bottom corner
             if (0 > h2_) { // hi
-                factor_ = camera_.scaleFactor([tilePos3_[0], tilePos3_[1], h2_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos3x_, tilePos3y_, h2_], returnDistance_);
             } else if (0 < h1_) { // low
-                factor_ = camera_.scaleFactor([tilePos3_[0], tilePos3_[1], h1_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos3x_, tilePos3y_, h1_], returnDistance_);
             } else { // middle
-                factor_ = camera_.scaleFactor([tilePos3_[0], tilePos3_[1], (h1_ + h2_)*0.5], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos3x_, tilePos3y_, (h1_ + h2_)*0.5], returnDistance_);
             }
         } else { //bottom side
             if (0 > h2_) { // hi
-                factor_ = camera_.scaleFactor([(tilePos4_[0] + tilePos3_[0])*0.5, tilePos3_[1], h2_], returnDistance_);
+                factor_ = camera_.scaleFactor([(tilePos4x_ + tilePos3x_)*0.5, tilePos3y_, h2_], returnDistance_);
             } else if (0 < h1_) { // low
-                factor_ = camera_.scaleFactor([(tilePos4_[0] + tilePos3_[0])*0.5, tilePos3_[1], h1_], returnDistance_);
+                factor_ = camera_.scaleFactor([(tilePos4x_ + tilePos3x_)*0.5, tilePos3y_, h1_], returnDistance_);
             } else { // middle
-                factor_ = camera_.scaleFactor([(tilePos4_[0] + tilePos3_[0])*0.5, tilePos3_[1], (h1_ + h2_)*0.5], returnDistance_);
+                factor_ = camera_.scaleFactor([(tilePos4x_ + tilePos3x_)*0.5, tilePos3y_, (h1_ + h2_)*0.5], returnDistance_);
             }
         }
     } else { //middle row
-        if (0 < tilePos4_[0]) { // left side
+        if (0 < tilePos4x_) { // left side
             if (0 > h2_) { // hi
-                factor_ = camera_.scaleFactor([tilePos_[0], (tilePos2_[1] + tilePos3_[1])*0.5, h2_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos1x_, (tilePos2y_ + tilePos3y_)*0.5, h2_], returnDistance_);
             } else if (0 < h1_) { // low
-                factor_ = camera_.scaleFactor([tilePos_[0], (tilePos2_[1] + tilePos3_[1])*0.5, h1_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos1x_, (tilePos2y_ + tilePos3y_)*0.5, h1_], returnDistance_);
             } else { // middle
-                factor_ = camera_.scaleFactor([tilePos_[0], (tilePos2_[1] + tilePos3_[1])*0.5, (h1_ + h2_)*0.5], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos1x_, (tilePos2y_ + tilePos3y_)*0.5, (h1_ + h2_)*0.5], returnDistance_);
             }
-        } else if (0 > tilePos3_[0]) { // right side
+        } else if (0 > tilePos3x_) { // right side
             if (0 > h2_) { // hi
-                factor_ = camera_.scaleFactor([tilePos2_[0], (tilePos2_[1] + tilePos3_[1])*0.5, h2_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos2x_, (tilePos2y_ + tilePos3y_)*0.5, h2_], returnDistance_);
             } else if (0 < h1_) { // low
-                factor_ = camera_.scaleFactor([tilePos2_[0], (tilePos2_[1] + tilePos3_[1])*0.5, h1_], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos2x_, (tilePos2y_ + tilePos3y_)*0.5, h1_], returnDistance_);
             } else { // middle
-                factor_ = camera_.scaleFactor([tilePos2_[0], (tilePos2_[1] + tilePos3_[1])*0.5, (h1_ + h2_)*0.5], returnDistance_);
+                factor_ = camera_.scaleFactor([tilePos2x_, (tilePos2y_ + tilePos3y_)*0.5, (h1_ + h2_)*0.5], returnDistance_);
             }
         } else { //center
             if (0 > h2_) { // hi
-                factor_ = camera_.scaleFactor([(tilePos_[1] + tilePos2_[1])*0.5, (tilePos2_[1] + tilePos3_[1])*0.5, h2_], returnDistance_);
+                factor_ = camera_.scaleFactor([(tilePos1x_ + tilePos2x_)*0.5, (tilePos2y_ + tilePos3y_)*0.5, h2_], returnDistance_);
             } else if (0 < h1_) { // low
-                factor_ = camera_.scaleFactor([(tilePos_[1] + tilePos2_[1])*0.5, (tilePos2_[1] + tilePos3_[1])*0.5, h1_], returnDistance_);
+                factor_ = camera_.scaleFactor([(tilePos1x_ + tilePos2x_)*0.5, (tilePos2y_ + tilePos3y_)*0.5, h1_], returnDistance_);
             } else { // middle
-                factor_ = camera_.scaleFactor([(tilePos_[1] + tilePos2_[1])*0.5, (tilePos2_[1] + tilePos3_[1])*0.5, (h1_ + h2_)*0.5], returnDistance_);
+                factor_ = camera_.scaleFactor([(tilePos1x_ + tilePos2x_)*0.5, (tilePos2y_ + tilePos3y_)*0.5, (h1_ + h2_)*0.5], returnDistance_);
             }
         }
     }

@@ -184,7 +184,7 @@ struct Metanode {
 
     var nodeSize2_ = stream_.index_ - lastIndex_;
 
-    //if (this.map_.config_.mapSmartNodeParsing_) {
+    //if (!this.map_.config_.mapSmartNodeParsing_) {
         this.generateCullingHelpers();
     //}    
 };
@@ -284,6 +284,7 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
         ];
         */
        
+       /*
         h = this.maxHeight_;
         var n5_ = node_.getPhysicalCoords([ur_[0], ur_[1], h]);
         var n6_ = node_.getPhysicalCoords([ur_[0], ll_[1], h]);
@@ -298,7 +299,7 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
 
             n5_, n6_, n7_, n8_
         ];
-
+*/
         Melown.vec3.normalize(n1_);
         Melown.vec3.normalize(n2_);
         Melown.vec3.normalize(n3_);

@@ -71,6 +71,8 @@ Melown.Map.prototype.updateCamera = function() {
     //console.log("near: " + near_ + "  far: " + far_);
 
     this.camera_.setParams(this.position_.getFov()*0.5, near_, far_ * 2.0);
+    
+    return camInfo_;
 };
 
 Melown.Map.prototype.cameraHeight = function() {

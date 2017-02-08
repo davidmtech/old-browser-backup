@@ -198,7 +198,7 @@ Melown.MapMesh.prototype.onLoaded = function(data_, task_) {
 
     this.fileSize_= data_.byteLength;
 
-    var stream_ = {data_:data_, index_:0};
+    var stream_ = {data_: new DataView(data_), buffer_:data_, index_:0};
 
     var t = performance.now();
     this.parseMapMesh(stream_);
@@ -255,6 +255,10 @@ Melown.MapMesh.prototype.parseMapMesh = function (stream_) {
     if (this.version_ > 3) {
         return false;
     }
+    
+    //if (this.version_ >= 3) {
+        stream_.uint8Data_ = new Uint8Array(stream_.buffer_);
+    //}
 
     this.meanUndulation_ = streamData_.getFloat64(stream_.index_, true); stream_.index_ += 8;
     this.numSubmeshes_ = streamData_.getUint16(stream_.index_, true); stream_.index_ += 2;

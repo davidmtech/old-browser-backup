@@ -243,8 +243,9 @@ Melown.Camera.prototype.pointsVisible = function(points_, shift_) {
     for (var i = 0; i < 6; i++) {
         // check if all points lie on the negative side of the frustum plane
         var negative_ = true;
+        var plane_ = planes_[i];
         for (var j = 0; j < 8; j++) {
-            if (dot_(planes_[i], points_[j]) >= 0) {
+            if (dot_(plane_, points_[j]) >= 0) {
                 //return false;
                 negative_ = false;
                 break;
@@ -329,8 +330,9 @@ Melown.Camera.prototype.bboxVisible = function(bbox_, shift_) {
     for (var i = 0; i < 6; i++) {
         // check if all points lie on the negative side of the frustum plane
         var negative_ = true;
+        var plane_ = planes_[i];
         for (var j = 0; j < 8; j++) {
-            if (dot_(planes_[i], points_[j]) >= 0) {
+            if (dot_(plane_, points_[j]) >= 0) {
                 //return false;
                 negative_ = false;
                 break;

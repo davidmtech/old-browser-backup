@@ -23,6 +23,10 @@ Melown.MapDivisionNode.prototype.getPhysicalCoords = function (coords_, skipVert
     return this.srs_.convertCoordsTo(coords_, this.map_.getPhysicalSrs(), skipVerticalAdjust_);
 };
 
+Melown.MapDivisionNode.prototype.getPhysicalCoordsFast = function (coords_, skipVerticalAdjust_, coords2_, index_, index2_) {
+    return this.srs_.convertCoordsToFast(coords_, this.map_.getPhysicalSrs(), skipVerticalAdjust_, coords2_, index_, index2_);
+};
+
 Melown.MapDivisionNode.prototype.getExtents = function (coords_) {
     return this.srs_.convertCoordsFrom(coords_, this.map_.getNavigationSrs());
 };

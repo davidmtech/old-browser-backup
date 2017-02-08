@@ -170,6 +170,8 @@ Melown.MapMetatile.prototype.onLoaded = function(data_, task_) {
         return;
     }
 
+    data_ = new DataView(data_);
+
     this.size_ += data_.byteLength * 4;
 
     var t = performance.now();

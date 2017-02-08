@@ -45,7 +45,7 @@ Melown.MapVirtualSurface.prototype.parseJson = function(json_) {
 };
 
 Melown.MapVirtualSurface.prototype.onMappingFileLoaded = function(data_) {
-    this.parseMappingFile(data_);            
+    this.parseMappingFile(new DataView(data_));            
     this.ready_ = true;
     this.map_.refreshView();
 };

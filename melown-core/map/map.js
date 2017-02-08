@@ -175,6 +175,7 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.drawAtmoState2_ = this.renderer_.gpu_.createState({zwrite_:false, ztest_:true, blend_:false});
 //    this.drawAuraState_ = this.renderer_.gpu_.createState({zwrite_:false, ztest_:false, blend_:true});
 
+    this.tmpVec3_ = new Array(3);
     
     this.setupDetailDegradation();
 
@@ -868,10 +869,10 @@ Melown.Map.prototype.drawMap = function() {
 
     if (!projected_) {
         //why calling this function distorts camera? why I have call it before update camera< 
-        var camInfo_ = this.position_.getCameraInfo(this.getNavigationSrs().isProjected(), true); //
+        //var camInfo_ = this.position_.getCameraInfo(this.getNavigationSrs().isProjected(), true); //
     }
 
-    this.updateCamera();
+    var camInfo_ = this.updateCamera();
     this.renderer_.dirty_ = true;
     this.renderer_.drawFog_ = this.drawFog_;
 
@@ -929,7 +930,7 @@ Melown.Map.prototype.drawMap = function() {
     this.loader_.setChannel(0); //0 = hires channel
     this.zFactor_ = 0;
     //if (this.drawEarth_) {
-        this.draw(null, projected_);
+        this.draw(null, projected_, camInfo_);
     //}
 };
 

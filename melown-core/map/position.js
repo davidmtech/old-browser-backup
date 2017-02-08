@@ -386,9 +386,10 @@ Melown.MapPosition.prototype.getCanvasCoords = function(lod_, physical_) {
 
 Melown.MapPosition.prototype.getNED = function() {
     var pos_ = this.clone();
-    pos_.convertHeightMode("fix");
+    //pos_.convertHeightMode("fix");
    // pos_.setCoords2([0,90]);
     var coords_ = pos_.getCoords();
+    coords_[2] = 0;
     var centerCoords_ = this.map_.convertCoords(coords_, "navigation", "physical");
 
     var tcoords01_ = this.map_.convertCoords([0,0], "navigation", "physical");

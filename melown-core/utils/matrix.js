@@ -114,6 +114,29 @@ Melown.vec3.normalize = function (a, b) {
     b[2] = e * g;
     return b;
 };
+Melown.vec3.normalize2 = function (a, i, b) {
+    var c = a[i],
+        d = a[i+1],
+        e = a[i+2],
+        g = Math.sqrt(c * c + d * d + e * e);
+    if (g) {
+        if (g == 1) {
+            b[0] = c;
+            b[1] = d;
+            b[2] = e;
+            return b;
+        }
+    } else {
+        b[0] = 0;
+        b[1] = 0;
+        b[2] = 0;
+        return b;
+    }
+    g = 1 / g;
+    b[0] = c * g;
+    b[1] = d * g;
+    b[2] = e * g;
+};
 Melown.vec3.cross = function (a, b, c) {
     c || (c = a);
     var d = a[0],

@@ -123,8 +123,9 @@ struct VerticesBlock {
 
     var data_ = stream_.data_;
     var index_ = stream_.index_;
+    var uint8Data_ = stream_.uint8Data_;
 
-    var numVertices_ = data_.getUint16(stream_.index_, true); index_ += 2;
+    var numVertices_ = data_.getUint16(index_, true); index_ += 2;
 
     if (!numVertices_) {
         this.valid_ = false;
@@ -141,17 +142,27 @@ struct VerticesBlock {
     var uvfactor_ = 1.0 / 65535;
     var vfactor_ = uvfactor_;
     var ufactor_ = uvfactor_;
+    var vindex_ = 0;
+    var uvindex_ = 0;
 
     for (var i = 0; i < numVertices_; i++) {
-        var vindex_ = i * 3;
-        vertices_[vindex_] = data_.getUint16(index_, true) * vfactor_; index_ += 2;
-        vertices_[vindex_+1] = data_.getUint16(index_, true) * vfactor_; index_ += 2;
-        vertices_[vindex_+2] = data_.getUint16(index_, true) * vfactor_; index_ += 2;
+        //vertices_[vindex_] = data_.getUint16(index_, true) * vfactor_; index_ += 2;
+        //vertices_[vindex_+1] = data_.getUint16(index_, true) * vfactor_; index_ += 2;
+        //vertices_[vindex_+2] = data_.getUint16(index_, true) * vfactor_; index_ += 2;
+        vertices_[vindex_] = (uint8Data_[index_] + (uint8Data_[index_ + 1]<<8)) * vfactor_;
+        vertices_[vindex_+1] = (uint8Data_[index_+2] + (uint8Data_[index_ + 3]<<8)) * vfactor_;
+        vertices_[vindex_+2] = (uint8Data_[index_+4] + (uint8Data_[index_ + 5]<<8)) * vfactor_;
+        vindex_ += 3;
 
         if (externalUVs_ != null) {
-            var uvindex_ = i * 2;
-            externalUVs_[uvindex_] = data_.getUint16(index_, true) * uvfactor_; index_ += 2;
-            externalUVs_[uvindex_+1] = (65535 - data_.getUint16(index_, true)) * uvfactor_; index_ += 2;
+            //externalUVs_[uvindex_] = data_.getUint16(index_, true) * uvfactor_; index_ += 2;
+            //externalUVs_[uvindex_+1] = (65535 - data_.getUint16(index_, true)) * uvfactor_; index_ += 2;
+            externalUVs_[uvindex_] = (uint8Data_[index_+6] + (uint8Data_[index_ + 7]<<8)) * uvfactor_;
+            externalUVs_[uvindex_+1] = (65535 - (uint8Data_[index_+8] + (uint8Data_[index_ + 9]<<8))) * uvfactor_;
+            uvindex_ += 2;
+            index_ += 10;
+        } else {
+            index_ += 6;
         }
     }
 
@@ -180,8 +191,9 @@ struct TexcoorsBlock {
         var uvfactor_ = 1.0 / 65535;
     
         for (var i = 0, li = numUVs_ * 2; i < li; i+=2) {
-            internalUVs_[i] = data_.getUint16(index_, true) * uvfactor_; index_ += 2;
-            internalUVs_[i+1] = (65535 - data_.getUint16(index_, true)) * uvfactor_; index_ += 2;
+            internalUVs_[i] = (uint8Data_[index_] + (uint8Data_[index_ + 1]<<8)) * uvfactor_;
+            internalUVs_[i+1] = (65535 - (uint8Data_[index_+2] + (uint8Data_[index_ + 3]<<8))) * uvfactor_;
+            index_ += 4;
         }
     
         this.tmpInternalUVs_ = internalUVs_;
@@ -221,9 +233,9 @@ struct FacesBlock {
 
     for (var i = 0; i < numFaces_; i++) {
         var vindex_ = i * (3 * 3);
-        var v1 = data_.getUint16(index_, true); index_ += 2;
-        var v2 = data_.getUint16(index_, true); index_ += 2;
-        var v3 = data_.getUint16(index_, true); index_ += 2;
+        var v1 = (uint8Data_[index_] + (uint8Data_[index_ + 1]<<8));
+        var v2 = (uint8Data_[index_+2] + (uint8Data_[index_ + 3]<<8));
+        var v3 = (uint8Data_[index_+4] + (uint8Data_[index_ + 5]<<8));
 
         //var dindex_ = i * (3 * 3);
         var sindex_ = v1 * 3;
@@ -252,9 +264,10 @@ struct FacesBlock {
         }
 
         if (internalUVs_ != null) {
-            v1 = data_.getUint16(index_, true); index_ += 2;
-            v2 = data_.getUint16(index_, true); index_ += 2;
-            v3 = data_.getUint16(index_, true); index_ += 2;
+            v1 = (uint8Data_[index_+6] + (uint8Data_[index_ + 7]<<8));
+            v2 = (uint8Data_[index_+8] + (uint8Data_[index_ + 9]<<8));
+            v3 = (uint8Data_[index_+10] + (uint8Data_[index_ + 11]<<8));
+            index_ += 12;
 
             vindex_ = i * (3 * 2);
             internalUVs_[vindex_] = iUVs_[v1*2];
@@ -263,6 +276,8 @@ struct FacesBlock {
             internalUVs_[vindex_+3] = iUVs_[v2*2+1];
             internalUVs_[vindex_+4] = iUVs_[v3*2];
             internalUVs_[vindex_+5] = iUVs_[v3*2+1];
+        } else {
+            index_ += 6;
         }
     }
 
@@ -283,36 +298,42 @@ struct FacesBlock {
     this.faces_ = numFaces_;
 };
 
-Melown.MapSubmesh.prototype.parseWord = function (data_, index_) {
-    var value_ = data_.getUint8(index_, true);
+Melown.MapSubmesh.prototype.parseWord = function (data_, res_) {
+    var value_ = data_[res_[1]];
     
     if (value_ & 0x80) {
-        var value2_ = data_.getUint8(index_+1, true);
-        return [(value_ & 0x7f) | (value2_ << 7), index_ + 2];
+        res_[0] = (value_ & 0x7f) | (data_[res_[1]+1] << 7);
+        res_[1] += 2;
+    } else {
+        res_[0] = value_;
+        res_[1] ++;
     }
-
-    return [value_, index_ + 1];
 };
 
-Melown.MapSubmesh.prototype.parseDelta = function (data_, index_) {
-    var value_ = data_.getUint8(index_, true);
+Melown.MapSubmesh.prototype.parseDelta = function (data_, res_) {
+    var value_ = data_[res_[1]];
     
     if (value_ & 0x80) {
-        value_ = (value_ & 0x7f) | (data_.getUint8(index_+1, true) << 7);
+        value_ = (value_ & 0x7f) | (data_[res_[1]+1] << 7);
 
         if (value_ & 1) {
-            return [-((value_ >> 1)+1), index_ + 2];
+            res_[0] = -((value_ >> 1)+1); 
+            res_[1] += 2;
         } else {
-            return [(value_ >> 1), index_ + 2];
+            res_[0] = (value_ >> 1); 
+            res_[1] += 2;
+        }
+    } else {
+        if (value_ & 1) {
+            res_[0] = -((value_ >> 1)+1); 
+            res_[1] ++;
+        } else {
+            res_[0] = (value_ >> 1); 
+            res_[1] ++;
         }
     }
-
-    if (value_ & 1) {
-        return [-((value_ >> 1)+1), index_ + 1];
-    } else {
-        return [(value_ >> 1), index_ + 1];
-    }
 };
+
 
 Melown.MapSubmesh.prototype.parseVerticesAndFaces2 = function (stream_) {
 /*
@@ -331,6 +352,7 @@ struct VerticesBlock {
 
     var data_ = stream_.data_;
     var index_ = stream_.index_;
+    var uint8Data_ = stream_.uint8Data_;
 
     var numVertices_ = data_.getUint16(index_, true); index_ += 2;
     var quant_ = data_.getUint16(index_, true); index_ += 2;
@@ -355,20 +377,24 @@ struct VerticesBlock {
     var sx_ = 1.0 / (this.bbox_.max_[0] - this.bbox_.min_[0]);
     var sy_ = 1.0 / (this.bbox_.max_[1] - this.bbox_.min_[1]);
     var sz_ = 1.0 / (this.bbox_.max_[2] - this.bbox_.min_[2]);
+    
+    var res_ = [0, index_];
 
     for (var i = 0; i < numVertices_; i++) {
-        var d = this.parseDelta(data_, index_);
-        x += d[0]; index_ = d[1];
-        d = this.parseDelta(data_, index_);
-        y += d[0]; index_ = d[1];
-        d = this.parseDelta(data_, index_);
-        z += d[0]; index_ = d[1];
+        this.parseDelta(uint8Data_, res_);
+        x += res_[0];
+        this.parseDelta(uint8Data_, res_);
+        y += res_[0];
+        this.parseDelta(uint8Data_, res_);
+        z += res_[0];
         
         var vindex_ = i * 3;
         vertices_[vindex_] = ((x * multiplier_ * scale_ + cx) - mx_) * sx_;
         vertices_[vindex_+1] = ((y * multiplier_ * scale_ + cy) - my_) * sy_;
         vertices_[vindex_+2] = ((z * multiplier_ * scale_ + cz) - mz_) * sz_;
     }
+    
+    index_ = res_[1];
 
     if (this.flags_ & MelownSubmeshFlags_ExternalTexcoords) {
         quant_ = data_.getUint16(index_, true); index_ += 2;
@@ -376,18 +402,21 @@ struct VerticesBlock {
 
         externalUVs_ = new Float32Array(numVertices_ * 2);
         x = 0, y = 0;
+        res_[1] = index_;
 
         for (var i = 0; i < numVertices_; i++) {
-            var d = this.parseDelta(data_, index_);
-            x += d[0]; index_ = d[1];
-            d = this.parseDelta(data_, index_);
-            y += d[0]; index_ = d[1];
+            var d = this.parseDelta(uint8Data_, res_);
+            x += res_[0];
+            d = this.parseDelta(uint8Data_, res_);
+            y += res_[0];
 
             var uvindex_ = i * 2;
             externalUVs_[uvindex_] = x * multiplier_;
             externalUVs_[uvindex_+1] = 1 - (y * multiplier_);
         }
     }
+
+    index_ = res_[1];
 
     this.tmpVertices_ = vertices_;
     this.tmpExternalUVs_ = externalUVs_;
@@ -415,16 +444,19 @@ struct TexcoorsBlock {
         x = 0, y = 0;
     
         var internalUVs_ = new Float32Array(numUVs_ * 2);//[];
-    
+        res_[1] = index_;
+
         for (var i = 0, li = numUVs_ * 2; i < li; i+=2) {
-            var d = this.parseDelta(data_, index_);
-            x += d[0]; index_ = d[1];
-            d = this.parseDelta(data_, index_);
-            y += d[0]; index_ = d[1];
+            this.parseDelta(uint8Data_, res_);
+            x += res_[0];
+            this.parseDelta(uint8Data_, res_);
+            y += res_[0];
 
             internalUVs_[i] = x * multiplierU_;
             internalUVs_[i+1] = 1 - (y * multiplierV_);
         }
+
+        index_ = res_[1];
     
         this.tmpInternalUVs_ = internalUVs_;
     }
@@ -461,21 +493,22 @@ struct FacesBlock {
     var eUVs_ = this.tmpExternalUVs_;
     var iUVs_ = this.tmpInternalUVs_;
     var high_ = 0;
+    res_[1] = index_;
 
     for (var i = 0; i < numFaces_; i++) {
         var vindex_ = i * (3 * 3);
        
-        var d = this.parseWord(data_, index_);
-        var v1 = high_ - d[0]; index_ = d[1];
-        if (!d[0]) { high_++; }
+        this.parseWord(uint8Data_, res_);
+        var v1 = high_ - res_[0];
+        if (!res_[0]) { high_++; }
 
-        d = this.parseWord(data_, index_);
-        var v2 = high_ - d[0]; index_ = d[1];
-        if (!d[0]) { high_++; }
+        this.parseWord(uint8Data_, res_);
+        var v2 = high_ - res_[0];
+        if (!res_[0]) { high_++; }
 
-        d = this.parseWord(data_, index_);
-        var v3 = high_ - d[0]; index_ = d[1];
-        if (!d[0]) { high_++; }
+        this.parseWord(uint8Data_, res_);
+        var v3 = high_ - res_[0];
+        if (!res_[0]) { high_++; }
         
         //var dindex_ = i * (3 * 3);
         var sindex_ = v1 * 3;
@@ -508,17 +541,17 @@ struct FacesBlock {
 
     if (internalUVs_ != null) {
         for (var i = 0; i < numFaces_; i++) {
-            var d = this.parseWord(data_, index_);
-            var v1 = high_ - d[0]; index_ = d[1];
-            if (!d[0]) { high_++; }
+            this.parseWord(uint8Data_, res_);
+            var v1 = high_ - res_[0];
+            if (!res_[0]) { high_++; }
     
-            d = this.parseWord(data_, index_);
-            var v2 = high_ - d[0]; index_ = d[1];
-            if (!d[0]) { high_++; }
+            this.parseWord(uint8Data_, res_);
+            var v2 = high_ - res_[0];
+            if (!res_[0]) { high_++; }
     
-            d = this.parseWord(data_, index_);
-            var v3 = high_ - d[0]; index_ = d[1];
-            if (!d[0]) { high_++; }
+            this.parseWord(uint8Data_, res_);
+            var v3 = high_ - res_[0];
+            if (!res_[0]) { high_++; }
 
             vindex_ = i * (3 * 2);
             internalUVs_[vindex_] = iUVs_[v1*2];
@@ -529,6 +562,8 @@ struct FacesBlock {
             internalUVs_[vindex_+5] = iUVs_[v3*2+1];
         }
     }
+
+    index_ = res_[1];
 
     this.vertices_ = vertices_;
     this.internalUVs_ = internalUVs_;

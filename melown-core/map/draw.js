@@ -1,6 +1,6 @@
 
 
-Melown.Map.prototype.draw = function(skipFreeLayers_, projected_) {
+Melown.Map.prototype.draw = function(skipFreeLayers_, projected_, camInfo_) {
     this.ndcToScreenPixel_ = this.renderer_.curSize_[0] * 0.5;
     this.updateFogDensity();
     this.updateGridFactors();
@@ -109,7 +109,7 @@ Melown.Map.prototype.draw = function(skipFreeLayers_, projected_) {
         }
     
         if (this.tree_.surfaceSequence_.length > 0) {
-            this.tree_.draw();
+            this.tree_.draw(camInfo_);
         }
     
         if (this.replay_.storeTiles_) { //used only in inspectors
@@ -152,7 +152,7 @@ Melown.Map.prototype.draw = function(skipFreeLayers_, projected_) {
                 if (layer_.type_ == "geodata") {
                     this.drawMonoliticGeodata(layer_);
                 } else {
-                    layer_.tree_.draw();
+                    layer_.tree_.draw(camInfo_);
                 }
             }
         }
@@ -217,7 +217,7 @@ Melown.Map.prototype.draw = function(skipFreeLayers_, projected_) {
     //draw skydome before geodata
     if (!projected_ && this.drawFog_ && this.referenceFrame_.id_ == "melown2015") {    
 
-        var camInfo_ = this.position_.getCameraInfo(true);
+        //var camInfo_ = this.position_.getCameraInfo(true);
         var navigationSrsInfo_ = this.getNavigationSrs().getSrsInfo();
 
         var earthRadius_ =  navigationSrsInfo_["a"];

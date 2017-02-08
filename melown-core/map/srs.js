@@ -18,6 +18,7 @@ Melown.MapSrs = function(map_, id_, json_) {
     this.geoidGridMap_ = null;
     this.srsProj4_ = this.proj4_(this.srsDef_, null, null, true); 
     this.latlonProj4_ = null; 
+    this.proj4Cache_ = {};
 
     if (json_["geoidGrid"]) {
         var geoidGridData_ = json_["geoidGrid"];
@@ -214,16 +215,76 @@ Melown.MapSrs.prototype.convertCoordsTo = function(coords_, srs_, skipVerticalAd
     }
 
     coords_ = coords_.slice();
-    coords_[2] = this.getOriginalHeight(coords_);
 
-    var srsDef_ = (typeof srs_ === "string") ? srs_ : srs_.srsProj4_;
-    var coords2_ = this.proj4_(this.srsProj4_, srsDef_, coords_);
+    var stringSrs_ = (typeof srs_ === "string");
 
-    if (!skipVerticalAdjust_ && typeof srs_ !== "string") {
+    //if (!skipVerticalAdjust_ && stringSrs_) {
+        coords_[2] = this.getOriginalHeight(coords_);
+    //}
+
+    var srsDef_ = (stringSrs_) ? srs_ : srs_.srsProj4_;
+
+    /*
+    if (srsDef_.isGeocent && this.srsProj4_.projName == "merc") {
+        var coords3_ = coords_.slice();
+        this.convertMercToWGS(coords3_);
+        this.convertWGSToGeocent(coords3_, srsDef_);
+        return coords3_;
+    }*/
+
+
+    var srsDef2_ = (stringSrs_) ? srs_ : srs_.srsDef_;
+    //var coords2_ = this.proj4_(this.srsProj4_, srsDef_, coords_);
+
+    var proj_ = this.proj4Cache_[srsDef2_];
+    
+    if (!proj_) {
+        proj_ = this.proj4_(this.srsProj4_, srsDef_);
+        this.proj4Cache_[srsDef2_] = proj_;
+    }
+
+    var coords2_ = proj_.forward(coords_);
+
+    if (!skipVerticalAdjust_ && stringSrs_) {
         coords2_[2] = srs_.getFinalHeight(coords2_);
     }
 
     return coords2_;
+};
+
+Melown.MapSrs.prototype.convertCoordsToFast = function(coords_, srs_, skipVerticalAdjust_, coords2_, index_, index2_) {
+
+    //if (!skipVerticalAdjust_ && stringSrs_) {
+        //coords_[2] = this.getOriginalHeight(coords_);
+    //}
+
+    var srsDef_ = srs_.srsProj4_;
+    
+    if (srsDef_.isGeocent && this.srsProj4_.projName == "merc") {
+        this.convertMercToWGS(coords_, coords2_, index_, index2_);
+        this.convertWGSToGeocent(coords2_, srsDef_, coords2_, index2_, index2_);
+        return;
+    }
+
+    var srsDef2_ = srs_.srsDef_;
+
+    var proj_ = this.proj4Cache_[srsDef2_];
+    
+    if (!proj_) {
+        proj_ = this.proj4_(this.srsProj4_, srsDef_);
+        this.proj4Cache_[srsDef2_] = proj_;
+    }
+
+    var coords3_ = proj_.forward(coords_);
+    
+    coords2_[index2_] = coords3_[0];
+    coords2_[index2_+1] = coords3_[1];
+    coords2_[index2_+2] = coords3_[2];
+    
+
+    //if (!skipVerticalAdjust_ && stringSrs_) {
+        //coords2_[2] = srs_.getFinalHeight(coords2_);
+    //}
 };
 
 Melown.MapSrs.prototype.convertCoordsFrom = function(coords_, srs_) {
@@ -236,10 +297,6 @@ Melown.MapSrs.prototype.convertCoordsFrom = function(coords_, srs_) {
         srs_.isReady();
     }
 
-    if (!coords_) {
-        coords_ = coords_;
-    }
-
     coords_ = coords_.slice();
 
     if (typeof srs_ !== "string") {
@@ -247,7 +304,18 @@ Melown.MapSrs.prototype.convertCoordsFrom = function(coords_, srs_) {
     }
 
     var srsDef_ = (typeof srs_ === "string") ? srs_ : srs_.srsProj4_;
-    var coords2_ = this.proj4_(srsDef_, this.srsProj4_, coords_);
+    var srsDef2_ = (typeof srs_ === "string") ? srs_ : srs_.srsDef_;
+
+    //var coords2_ = this.proj4_(srsDef_, this.srsProj4_, coords_);
+
+    var proj_ = this.proj4Cache_[srsDef2_];
+    
+    if (!proj_) {
+        proj_ = this.proj4_(this.srsProj4_, srsDef_);
+        this.proj4Cache_[srsDef2_] = proj_;
+    }
+
+    var coords2_ = proj_.inverse(coords_);
 
     coords2_[2] = this.getFinalHeight(coords2_);
 
@@ -255,4 +323,89 @@ Melown.MapSrs.prototype.convertCoordsFrom = function(coords_, srs_) {
 };
 
 
+Melown.MapSrs.prototype.phi2z = function(eccent_, ts_) {
+  var HALF_PI = Math.PI*0.5;
+  var eccnth_ = 0.5 * eccent_;
+  var con_, dphi_;
+  var phi_ = HALF_PI - 2 * Math.atan(ts_);
+  for (var i = 0; i <= 15; i++) {
+    con_ = eccent_ * Math.sin(phi_);
+    dphi_ = HALF_PI - 2 * Math.atan(ts_ * (Math.pow(((1 - con_) / (1 + con_)), eccnth_))) - phi_;
+    phi_ += dphi_;
+    if (Math.abs(dphi_) <= 0.0000000001) {
+      return phi_;
+    }
+  }
+  //console.log("phi2z has NoConvergence");
+  return -9999;
+};
+
+
+Melown.MapSrs.prototype.convertMercToWGS = function(coords_, coords2_, index_, index2_) {
+    var TWO_PI = Math.PI * 2;
+    var HALF_PI = Math.PI*0.5;
+    var proj_ = this.srsProj4_;
+    var x = coords_[index_] - proj_.x0;
+    var y = coords_[index_+1] - proj_.y0;
+
+    if (proj_.sphere) {
+        coords2_[index2_+1] = HALF_PI - 2 * Math.atan(Math.exp(-y / (proj_.a * proj_.k0)));
+    } else {
+        var ts_ = Math.exp(-y / (proj_.a * proj_.k0));
+        var yy = this.phi2z(proj_.e, ts_);
+        coords2_[index2_+1] = yy;
+        if (yy === -9999) {
+            return;
+        }
+    }
+    
+    //coords_[0] = adjust_lon(proj_.long0 + x / (proj_.a * proj_.k0));
+    x = proj_.long0 + x / (proj_.a * proj_.k0);
+    var SPI = 3.14159265359;
+    coords2_[index2_] = (Math.abs(x) <= SPI) ? x : (x - ((x < 0) ? -1 : 1) * TWO_PI);
+    coords2_[index2_+2] = coords_[index_+2];
+};
+
+Melown.MapSrs.prototype.convertWGSToGeocent = function(coords_, srs_, coords2_, index_, index2_) {
+    var datum_ = srs_.datum;
+
+    var HALF_PI = Math.PI*0.5;
+    var Longitude = coords_[index_];
+    var Latitude = coords_[index_+1];
+    var Height = coords_[index_+2]; //Z value not always supplied
+
+    var Rn; /*  Earth radius at location  */
+    var Sin_Lat; /*  Math.sin(Latitude)  */
+    var Sin2_Lat; /*  Square of Math.sin(Latitude)  */
+    var Cos_Lat; /*  Math.cos(Latitude)  */
+
+    /*
+     ** Don't blow up if Latitude is just a little out of the value
+     ** range as it may just be a rounding issue.  Also removed longitude
+     ** test, it should be wrapped by Math.cos() and Math.sin().  NFW for PROJ.4, Sep/2001.
+     */
+    if (Latitude < -HALF_PI && Latitude > -1.001 * HALF_PI) {
+      Latitude = -HALF_PI;
+    }
+    else if (Latitude > HALF_PI && Latitude < 1.001 * HALF_PI) {
+      Latitude = HALF_PI;
+    }
+    else if ((Latitude < -HALF_PI) || (Latitude > HALF_PI)) {
+      /* Latitude out of range */
+      //..reportError('geocent:lat out of range:' + Latitude);
+      return null;
+    }
+
+    if (Longitude > Math.PI) {
+      Longitude -= (2 * Math.PI);
+    }
+
+    Sin_Lat = Math.sin(Latitude);
+    Cos_Lat = Math.cos(Latitude);
+    Sin2_Lat = Sin_Lat * Sin_Lat;
+    Rn = datum_.a / (Math.sqrt(1.0e0 - datum_.es * Sin2_Lat));
+    coords2_[index2_] = (Rn + Height) * Cos_Lat * Math.cos(Longitude);
+    coords2_[index2_+1] = (Rn + Height) * Cos_Lat * Math.sin(Longitude);
+    coords2_[index2_+2] = ((Rn * (1 - datum_.es)) + Height) * Sin_Lat;
+};
 
