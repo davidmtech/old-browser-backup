@@ -124,7 +124,10 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.processBuffer_ = new Array(60000);
     this.processBuffer2_ = new Array(60000);
     this.drawBuffer_ = new Array(60000);
-    
+    this.tmpVec3_ = new Array(3);
+    this.tmpVec5_ = new Array(5);
+
+    this.maxDivisionNodeDepth_ = this.getMaxSpatialDivisionNodeDepth();
 
     this.tree_ = new Melown.MapSurfaceTree(this, false);
     this.afterConfigParsed();
@@ -174,8 +177,6 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.drawAtmoState_ = this.renderer_.gpu_.createState({zwrite_:false, ztest_:false, blend_:true});
     this.drawAtmoState2_ = this.renderer_.gpu_.createState({zwrite_:false, ztest_:true, blend_:false});
 //    this.drawAuraState_ = this.renderer_.gpu_.createState({zwrite_:false, ztest_:false, blend_:true});
-
-    this.tmpVec3_ = new Array(3);
     
     this.setupDetailDegradation();
 

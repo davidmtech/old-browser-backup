@@ -360,6 +360,47 @@ Melown.Map.prototype.getSpatialDivisionNodeAndExtents = function(id_) {
 };
 
 
+Melown.Map.prototype.getSpatialDivisionNodeAndExtents2 = function(id_, res_, divisionNode_) {
+    if (!divisionNode_) {
+        debugger
+    }
+    
+    var shift_ = id_[0] - divisionNode_.id_[0];
+    var factor_ = 1.0 / Math.pow(2, shift_);
+    var ur_ = divisionNode_.extents_.ur_;
+    var ll_ = divisionNode_.extents_.ll_;
+    
+    //extents ll ur but tiles are ul lr!!!! 
+    
+    var dx_ = (ur_[0] - ll_[0]) * factor_; 
+    var dy_ = (ll_[1] - ur_[1]) * factor_;
+    
+    var nx_ = id_[1] - (divisionNode_.id_[1] << shift_);
+    var ny_ = id_[2] - (divisionNode_.id_[2] << shift_);
+    
+    res_[0] = divisionNode_;
+    res_[1] = ll_[0] + dx_ * nx_;
+    res_[2] = ur_[1] + dy_ * ny_;
+    res_[3] = ll_[0] + dx_ * (nx_+1);
+    res_[4] = ur_[1] + dy_ * (ny_+1);
+};
+
+
+Melown.Map.prototype.getMaxSpatialDivisionNodeDepth = function() {
+    var nodes_ = this.referenceFrame_.getSpatialDivisionNodes();
+    var maxLod_ = -1;
+
+    for (var i = 0, li = nodes_.length; i < li; i++) {
+        var node_ = nodes_[i];
+        
+        if (node_.id_[0] > maxLod_) {
+            maxLod_ = node_.id_[0];
+        } 
+    }
+
+    return maxLod_;
+};
+
 Melown.Map.prototype.getOptimalHeightLodBySampleSize = function(coords_, desiredSamplesSize_) {
     var result_ = this.getSpatialDivisionNode(coords_);
     var node_ = result_[0];

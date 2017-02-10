@@ -260,11 +260,12 @@ Melown.MapSrs.prototype.convertCoordsToFast = function(coords_, srs_, skipVertic
 
     var srsDef_ = srs_.srsProj4_;
     
+    /*
     if (srsDef_.isGeocent && this.srsProj4_.projName == "merc") {
         this.convertMercToWGS(coords_, coords2_, index_, index2_);
         this.convertWGSToGeocent(coords2_, srsDef_, coords2_, index2_, index2_);
         return;
-    }
+    }*/
 
     var srsDef2_ = srs_.srsDef_;
 

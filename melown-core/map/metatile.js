@@ -116,11 +116,22 @@ Melown.MapMetatile.prototype.getNode = function(id_) {
     }
     
     var node_ = this.nodes_[this.sizex_ * y + x];
-    
+
+    if (!node_) {
+        var index_ = this.sizex_ * y + x;
+        var stream_ = {data_:this.data_, index_:this.metanodesIndex_ + (index_ * this.metanodeSize_)};
+        var node_ = (new Melown.MapMetanode(this, [this.lod_, this.metatileIdx_ + this.offsetx_ + x, this.metatileIdy_ + this.offsety_ + y], stream_, this.divisionNode_)); 
+        this.nodes_[index_] = node_;
+        this.applyMetanodeCredits(x, y);
+        this.applyMetatanodeBitplanes(x, y); 
+    }
+
+/*    
     if (!node_.ready_) {
         node_.generateCullingHelpers();
         node_.ready_ = true;
     }
+*/
     
     return node_;
 };
@@ -173,6 +184,8 @@ Melown.MapMetatile.prototype.onLoaded = function(data_, task_) {
     data_ = new DataView(data_);
 
     this.size_ += data_.byteLength * 4;
+    
+    this.data_ = data_;
 
     var t = performance.now();
     this.parseMetatatile({data_:data_, index_: 0});
@@ -334,6 +347,26 @@ Melown.MapMetatile.prototype.applyMetatatileBitplanes = function() {
     }
 };
 
+Melown.MapMetatile.prototype.applyMetatanodeBitplanes = function(x, y) {
+    for (var i = 0; i < 1; i++) {
+        if (this.flagPlanes_[i]) {
+            bitplane_ = this.flagPlanes_[i]; 
+            var byteIndex_ = this.sizex_ * y + x;
+            var bitIndex_ = byteIndex_ & 7;
+            var bitMask_ = 1 << bitIndex_;
+            byteIndex_ >>= 3;
+            
+            if (bitplane_[byteIndex_] & bitMask_) {
+                switch(i) {
+                    case 0:
+                        this.nodes_[y*this.sizex_+x].alien_ = true;
+                        break;       
+                }
+            }
+        }
+    }
+};
+
 Melown.MapMetatile.prototype.applyMetatatileCredits = function() {
     for (var y = 0; y < this.sizey_; y++) {
         for (var x = 0; x < this.sizex_; x++) {
@@ -354,18 +387,51 @@ Melown.MapMetatile.prototype.applyMetatatileCredits = function() {
     }
 };
 
+Melown.MapMetatile.prototype.applyMetanodeCredits = function(x, y) {
+    var byteIndex_ = this.sizex_ * y + x;
+    var bitIndex_ = byteIndex_ & 7;
+    var bitMask_ = 1 << bitIndex_;
+    byteIndex_ >>= 3;
+
+    for (var i = 0, li = this.credits_.length; i < li; i++) {
+        if (this.credits_[i].creditMask_[byteIndex_] & bitMask_) {
+            var id_ = this.credits_[i].creditId_;
+            if (id_) {
+                this.nodes_[y*this.sizex_+x].credits_.push(id_);
+            }
+        }
+    }
+};
+
 Melown.MapMetatile.prototype.parseMetatatileNodes = function(stream_) {
+    this.metanodesIndex_ = stream_.index_;
+
+    this.metanodeSize_ = Math.floor((6 * (this.id_[0] + 2) + 7) / 8);
+    this.metanodeSize_ += 1 + 1 + 2 + 2 + 2 + 2; 
+
+    if (this.version_ >= 3) {
+        if (this.flags_ & (1<<7)) {
+            this.metanodeSize_ += 2;
+        } else if (this.flags_ & (1<<6)) {
+            this.metanodeSize_ += 1;
+        }
+    }
+
+    this.divisionNode_ = this.map_.getSpatialDivisionNodeAndExtents([this.lod_, this.metatileIdx_ + this.offsetx_, this.metatileIdy_ + this.offsety_])[0];
     this.nodes_ = new Array(this.sizex_*this.sizey_);
+    
+    /*
     var index_ = 0;
 
     for (var y = 0; y < this.sizey_; y++) {
         for (var x = 0; x < this.sizex_; x++) {
-            this.nodes_[index_] = (new Melown.MapMetanode(this, [this.lod_, this.metatileIdx_ + this.offsetx_ + x, this.metatileIdy_ + this.offsety_ + y], stream_));
+            this.nodes_[index_] = (new Melown.MapMetanode(this, [this.lod_, this.metatileIdx_ + this.offsetx_ + x, this.metatileIdy_ + this.offsety_ + y], stream_, divisionNode_));
             index_++;
         }
     }
     
     this.applyMetatatileCredits();
     this.applyMetatatileBitplanes();
+    */
 };
 
