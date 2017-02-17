@@ -193,59 +193,29 @@ Melown.Camera.prototype.pointVisible = function(point_, shift_) {
 Melown.Camera.prototype.pointsVisible = function(points_, shift_) {
     if (this.dirty_) this.update();
    
+    var planes_ = this.frustumPlanes_;
     var points2_ = this.bboxPoints_;
-    var p,p2;
+    var lj = points_.length;
 
     if (shift_) {
         var sx_ = shift_[0];
         var sy_ = shift_[1];
         var sz_ = shift_[2];
-        
-        p = points_[0];
-        p2 = points2_[0];
-        p2[0] = p[0] - sx_;  p2[1] = p[1] - sy_; p2[2] = p[2] - sz_;
-
-        p = points_[1];
-        p2 = points2_[1];
-        p2[0] = p[0] - sx_;  p2[1] = p[1] - sy_; p2[2] = p[2] - sz_;
-
-        p = points_[2];
-        p2 = points2_[2];
-        p2[0] = p[0] - sx_;  p2[1] = p[1] - sy_; p2[2] = p[2] - sz_;
-
-        p = points_[3];
-        p2 = points2_[3];
-        p2[0] = p[0] - sx_;  p2[1] = p[1] - sy_; p2[2] = p[2] - sz_;
-
-        p = points_[4];
-        p2 = points2_[4];
-        p2[0] = p[0] - sx_;  p2[1] = p[1] - sy_; p2[2] = p[2] - sz_;
-
-        p = points_[5];
-        p2 = points2_[5];
-        p2[0] = p[0] - sx_;  p2[1] = p[1] - sy_; p2[2] = p[2] - sz_;
-
-        p = points_[6];
-        p2 = points2_[6];
-        p2[0] = p[0] - sx_;  p2[1] = p[1] - sy_; p2[2] = p[2] - sz_;
-
-        p = points_[7];
-        p2 = points2_[7];
-        p2[0] = p[0] - sx_;  p2[1] = p[1] - sy_; p2[2] = p[2] - sz_;
-
-        points_ = points2_;
+    } else {
+        var sx_ = 0;
+        var sy_ = 0;
+        var sz_ = 0;
     }
-
-    var dot_ = Melown.vec4.dot2;
-    var planes_ = this.frustumPlanes_;
+        
+    var dot_ = Melown.vec4.dot3;
 
     // test all frustum planes quickly
     for (var i = 0; i < 6; i++) {
         // check if all points lie on the negative side of the frustum plane
         var negative_ = true;
         var plane_ = planes_[i];
-        for (var j = 0; j < 8; j++) {
-            if (dot_(plane_, points_[j]) >= 0) {
+        for (var j = 0; j < lj; j+=3) {
+            if (dot_(plane_, points_, j, sx_, sy_, sz_) >= 0) {
                 //return false;
                 negative_ = false;
                 break;
@@ -254,7 +224,6 @@ Melown.Camera.prototype.pointsVisible = function(points_, shift_) {
         if (negative_) return false;
     }
 
-    // the box might be inside - further testing should be done here - TODO!
     return true;
 };
 

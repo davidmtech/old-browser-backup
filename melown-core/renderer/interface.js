@@ -60,7 +60,7 @@ Melown.RendererInterface.prototype.createTexture = function(options_) {
 
         if (width_ && height_) {
             var texture_ = new Melown.GpuTexture(this.gpu_);
-            texture_.createFromData(width_, height_, source_, filter, repeat_);
+            texture_.createFromData(width_, height_, source_, filter_, repeat_);
             return texture_;
         }
     }

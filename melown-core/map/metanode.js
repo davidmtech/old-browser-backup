@@ -309,17 +309,51 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
         var normalize_ = Melown.vec3.normalize2; 
         var dot_ = Melown.vec3.dot; 
 
-        normalize_(bbox_, 0, pos_);
-        var d1_ = dot_(normal_, pos_);
+        if (map_.config_.mapPreciseBBoxTest_) { 
+            var height_ = this.maxHeight_ - h;
+            
+            if (this.id_[0] >= 4) {
+                node_ = node_;
+            }
+
+            normalize_(bbox_, 0, pos_);
+            var d1_ = dot_(normal_, pos_);
+            bbox_[12] = bbox_[0] + pos_[0] * height_;
+            bbox_[13] = bbox_[1] + pos_[1] * height_;
+            bbox_[14] = bbox_[2] + pos_[2] * height_;
+            
+            normalize_(bbox_, 3, pos_);
+            var d2_ = dot_(normal_, pos_);
+            bbox_[15] = bbox_[3] + pos_[0] * height_;
+            bbox_[16] = bbox_[4] + pos_[1] * height_;
+            bbox_[17] = bbox_[5] + pos_[2] * height_;
         
-        normalize_(bbox_, 3, pos_);
-        var d2_ = dot_(normal_, pos_);
+            normalize_(bbox_, 6, pos_);
+            var d3_ = dot_(normal_, pos_);
+            bbox_[18] = bbox_[6] + pos_[0] * height_;
+            bbox_[19] = bbox_[7] + pos_[1] * height_;
+            bbox_[20] = bbox_[8] + pos_[2] * height_;
+        
+            normalize_(bbox_, 9, pos_);
+            var d4_ = dot_(normal_, pos_);
+            bbox_[21] = bbox_[9] + pos_[0] * height_;
+            bbox_[22] = bbox_[10] + pos_[1] * height_;
+            bbox_[23] = bbox_[11] + pos_[2] * height_;
+        
+        } else {
+            normalize_(bbox_, 0, pos_);
+            var d1_ = dot_(normal_, pos_);
+            
+            normalize_(bbox_, 3, pos_);
+            var d2_ = dot_(normal_, pos_);
+    
+            normalize_(bbox_, 6, pos_);
+            var d3_ = dot_(normal_, pos_);
+    
+            normalize_(bbox_, 9, pos_);
+            var d4_ = dot_(normal_, pos_);
+        }
 
-        normalize_(bbox_, 6, pos_);
-        var d3_ = dot_(normal_, pos_);
-
-        normalize_(bbox_, 9, pos_);
-        var d4_ = dot_(normal_, pos_);
 
         var maxDelta_ = Math.min(d1_, d2_, d3_, d4_);
 
@@ -385,15 +419,15 @@ Melown.MapMetanode.prototype.drawBBox2 = function(cameraPos_) {
         
     var bbox_ = this.bbox2_;
 
-    for (var i = 0, li = 4*3; i < li; i+=3) {
+    for (var i = 0, li = 8*3; i < li; i+=3) {
         var pos_ = ["obj", bbox_[i], bbox_[i+1], "fix", bbox_[i+2], 0, 0, 0, 10, 90 ];
 
         spoints_.push((new Melown.MapPosition(this.map_, pos_)).getCanvasCoords(null, true));
     }
     
     var renderer_ = this.map_.renderer_;
-    renderer_.drawLineString([spoints_[0], spoints_[1], spoints_[2], spoints_[3], spoints_[0] ], 2, [0,1,0.5,255], false, false, true);
-    //renderer_.drawLineString([spoints_[4], spoints_[5], spoints_[6], spoints_[7], spoints_[4] ], 2, [0,1,0.5,255], false, false, true);
+    //renderer_.drawLineString([spoints_[0], spoints_[1], spoints_[2], spoints_[3], spoints_[0] ], 2, [0,1,0.5,255], false, false, true);
+    renderer_.drawLineString([spoints_[4], spoints_[5], spoints_[6], spoints_[7], spoints_[4] ], 2, [0,1,0.5,255], false, false, true);
 };
 
 Melown.MapMetanode.prototype.drawPlane = function(cameraPos_, tile_) {

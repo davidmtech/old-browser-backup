@@ -30,6 +30,10 @@ Melown.vec4.dot2 = function (a, b) {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3];
 };
 
+Melown.vec4.dot3 = function (a, b, i, x, y, z) {
+    return a[0] * (b[i]-x) + a[1] * (b[i+1]-y) + a[2] * (b[i+2]-z) + a[3];
+};
+
 Melown.vec3 = {};
 Melown.vec3.create = function (a) {
     var b = new Melown.glMatrixArrayType2(3);

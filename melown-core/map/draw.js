@@ -252,10 +252,10 @@ Melown.Map.prototype.draw = function(skipFreeLayers_, projected_, camInfo_) {
         var params2_ = [this.cameraPosition_[0] * factor_, this.cameraPosition_[1] * factor_, this.cameraPosition_[2] * factor_, 1];
         
         
-        var t1_ = 1.1, t2_ = 1.5;
+        var t1_ = 1.4, t2_ = 1.6; //previous value t1=1.1
 
         if (this.cameraHeight_ > 60000) { //don render ground color in aura
-            t1_ = 1.1, t2_ = 1.8;
+            t1_ = 1.4, t2_ = 1.8;
 
             var params3_ = [t2_,1.0,t2_,0];
         } else {
