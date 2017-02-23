@@ -272,6 +272,10 @@ Melown.RendererInterface.prototype.drawImage = function(options_) {
     var blend_ = (options_["blend"] != null) ? options_["blend"] : false;
     var writeDepth_ = (options_["write-depth"] != null) ? options_["write-depth"] : false;
     var useState_ = (options_["use-state"] != null) ? options_["use-state"] : false;
+    color_[0] *= 1.0/255;
+    color_[1] *= 1.0/255;
+    color_[2] *= 1.0/255;
+    color_[3] *= 1.0/255;
 
     this.renderer_.drawImage(rect_[0], rect_[1], rect_[2], rect_[3], options_["texture"], color_, depth_, depthTest_, blend_, writeDepth_, useState_);
     return this;    
@@ -292,6 +296,10 @@ Melown.RendererInterface.prototype.drawBillboard = function(options_) {
     var blend_ = (options_["blend"] != null) ? options_["blend"] : false;
     var writeDepth_ = (options_["write-depth"] != null) ? options_["write-depth"] : false;
     var useState_ = (options_["use-state"] != null) ? options_["use-state"] : false;
+    color_[0] *= 1.0/255;
+    color_[1] *= 1.0/255;
+    color_[2] *= 1.0/255;
+    color_[3] *= 1.0/255;
 
     this.renderer_.drawBillboard(mvp_, options_["texture"], color_, depthTest_, blend_, writeDepth_, useState_);
     return this;    
@@ -313,6 +321,10 @@ Melown.RendererInterface.prototype.drawLineString = function(options_) {
     var blend_ = (options_["blend"] != null) ? options_["blend"] : false;
     var writeDepth_ = (options_["write-depth"] != null) ? options_["write-depth"] : false;
     var useState_ = (options_["use-state"] != null) ? options_["use-state"] : false;
+    color_[0] *= 1.0/255;
+    color_[1] *= 1.0/255;
+    color_[2] *= 1.0/255;
+    color_[3] *= 1.0/255;
 
     this.renderer_.drawLineString(points_, size_, color_, depthTest_, blend_, writeDepth_, useState_);
     return this;    
@@ -343,6 +355,10 @@ Melown.RendererInterface.prototype.drawDebugText = function(options_) {
     var size_ = options_["size"] || 16;
     var depth_ = options_["depth"];
     var useState_ = options_["use-state"] || false;
+    color_[0] *= 1.0/255;
+    color_[1] *= 1.0/255;
+    color_[2] *= 1.0/255;
+    color_[3] *= 1.0/255;
 
     var lx_ = this.renderer_.getTextSize(size_, text_);
 

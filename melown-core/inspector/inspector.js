@@ -65,7 +65,7 @@ Melown.Inspector.prototype.onMapUpdate = function(string_) {
         renderer_.drawLineString({
             "points" : slines_,
             "size" : 2.0,
-            "color" : [0,0.5,1,255],
+            "color" : [0,128,255,255],
             "depth-test" : false,
             "blend" : false
             });            
@@ -79,7 +79,7 @@ Melown.Inspector.prototype.onMapUpdate = function(string_) {
             renderer_.drawLineString({
                 "points" : slines_,
                 "size" : 2.0,
-                "color" : [0,1,0.5,255],
+                "color" : [0,255,128,255],
                 "depth-test" : false,
                 "blend" : false
                 });   
@@ -95,7 +95,7 @@ Melown.Inspector.prototype.onMapUpdate = function(string_) {
             renderer_.drawLineString({
                 "points" : slines_,
                 "size" : 2.0,
-                "color" : [0,1,1,255],
+                "color" : [0,255,255,255],
                 "depth-test" : false,
                 "blend" : false
                 });   
@@ -207,7 +207,7 @@ Melown.Inspector.prototype.onMapUpdate = function(string_) {
             renderer_.drawLineString({
                 "points" : lbuffer_,
                 "size" : 2.0,
-                "color" : [0,1,1,255],
+                "color" : [0,255,255,255],
                 "depth-test" : false,
                 "blend" : false
                 });            
@@ -222,7 +222,7 @@ Melown.Inspector.prototype.onMapUpdate = function(string_) {
             renderer_.drawLineString({
                 "points" : lbuffer_,
                 "size" : 2.0,
-                "color" : [0,1,1,255],
+                "color" : [0,255,255,255],
                 "depth-test" : false,
                 "blend" : false
                 });            

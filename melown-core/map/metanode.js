@@ -103,60 +103,64 @@ struct Metanode {
 */
 
     var streamData_ = stream_.data_;
-
     var lastIndex_ = stream_.index_;
+    var version_ = this.metatile_.version_;
 
     this.flags_ = streamData_.getUint8(stream_.index_, true); stream_.index_ += 1;
 
-    //if (this.id_[0] == 9) {
-        //stream_ = stream_;
-    //}
-
-    var extentsSize_ = (((this.id_[0] + 2) * 6 + 7) >> 3);
-    var extentsBytes_ = Melown.MapMetanodeBuffer_;//new Uint8Array(extentsSize_);
-
-    for (var i = 0, li = extentsSize_; i < li; i++) {
-        extentsBytes_[i] = streamData_.getUint8(stream_.index_, true); stream_.index_ += 1;
-    }
-
-    var extentBits_ = this.id_[0] + 2;
-
-    var minExtents_ = [0,0,0];
-    var maxExtents_ = [0,0,0];
-
-    var index_ = 0;
-    var spaceExtentSize_ = this.map_.spaceExtentSize_;
-    var spaceExtentOffset_ = this.map_.spaceExtentOffset_;
-
-    for (var i = 0; i < 3; i++) {
-        minExtents_[i] = this.parseExtentBits(extentsBytes_, extentBits_, index_) * spaceExtentSize_[i] + spaceExtentOffset_[i];
-        //minExtents_[i] = this.parseExtentBits(extentsBytes_, extentBits_, index_, 1.0);
-        index_ += extentBits_;
-        maxExtents_[i] = this.parseExtentBits(extentsBytes_, extentBits_, index_) * spaceExtentSize_[i] + spaceExtentOffset_[i];
-        //maxExtents_[i] = this.parseExtentBits(extentsBytes_, extentBits_, index_, 1.0);
-        index_ += extentBits_;
-    }
-
-    //check zero bbox
-    var extentsBytesSum_ = 0;
-    for (var i = 0, li = extentsBytes_.length; i < li; i++) {
-        extentsBytesSum_ += extentsBytes_[i];
-    }
+    if (version_ < 5) {
+        var extentsSize_ = (((this.id_[0] + 2) * 6 + 7) >> 3);
+        var extentsBytes_ = Melown.MapMetanodeBuffer_;//new Uint8Array(extentsSize_);
     
-    //extent bytes are empty and therefore bbox is empty also
-    if (extentsBytesSum_ == 0 ) {
-        //console.log("empty-node: id: " + JSON.stringify(this.id_));
-        //console.log("empty-node: surafce: " + this.metatile_.surface_.id_);
+        for (var i = 0, li = extentsSize_; i < li; i++) {
+            extentsBytes_[i] = streamData_.getUint8(stream_.index_, true); stream_.index_ += 1;
+        }
+    
+        var extentBits_ = this.id_[0] + 2;
+    
+        var minExtents_ = [0,0,0];
+        var maxExtents_ = [0,0,0];
+    
+        var index_ = 0;
+        var spaceExtentSize_ = this.map_.spaceExtentSize_;
+        var spaceExtentOffset_ = this.map_.spaceExtentOffset_;
+    
+        for (var i = 0; i < 3; i++) {
+            minExtents_[i] = this.parseExtentBits(extentsBytes_, extentBits_, index_) * spaceExtentSize_[i] + spaceExtentOffset_[i];
+            //minExtents_[i] = this.parseExtentBits(extentsBytes_, extentBits_, index_, 1.0);
+            index_ += extentBits_;
+            maxExtents_[i] = this.parseExtentBits(extentsBytes_, extentBits_, index_) * spaceExtentSize_[i] + spaceExtentOffset_[i];
+            //maxExtents_[i] = this.parseExtentBits(extentsBytes_, extentBits_, index_, 1.0);
+            index_ += extentBits_;
+        }
+    
+        //check zero bbox
+        var extentsBytesSum_ = 0;
+        for (var i = 0, li = extentsBytes_.length; i < li; i++) {
+            extentsBytesSum_ += extentsBytes_[i];
+        }
+        
+        //extent bytes are empty and therefore bbox is empty also
+        if (extentsBytesSum_ == 0 ) {
+            //console.log("empty-node: id: " + JSON.stringify(this.id_));
+            //console.log("empty-node: surafce: " + this.metatile_.surface_.id_);
+    
+            minExtents_[0] = Number.POSITIVE_INFINITY;
+            minExtents_[1] = Number.POSITIVE_INFINITY;
+            minExtents_[2] = Number.POSITIVE_INFINITY;
+            maxExtents_[0] = Number.NEGATIVE_INFINITY;
+            maxExtents_[1] = Number.NEGATIVE_INFINITY;
+            maxExtents_[2] = Number.NEGATIVE_INFINITY;
+        }
+    
+        this.bbox_ = new Melown.BBox(minExtents_[0], minExtents_[1], minExtents_[2], maxExtents_[0], maxExtents_[1], maxExtents_[2]);
+    }    
 
-        minExtents_[0] = Number.POSITIVE_INFINITY;
-        minExtents_[1] = Number.POSITIVE_INFINITY;
-        minExtents_[2] = Number.POSITIVE_INFINITY;
-        maxExtents_[0] = Number.NEGATIVE_INFINITY;
-        maxExtents_[1] = Number.NEGATIVE_INFINITY;
-        maxExtents_[2] = Number.NEGATIVE_INFINITY;
+    if (version_ >= 4) {
+        this.minZ_ = streamData_.getFloat32(stream_.index_, true); stream_.index_ += 4;
+        this.maxZ_ = streamData_.getFloat32(stream_.index_, true); stream_.index_ += 4;
+        this.surrogatez_ = streamData_.getFloat32(stream_.index_, true); stream_.index_ += 4;
     }
-
-    this.bbox_ = new Melown.BBox(minExtents_[0], minExtents_[1], minExtents_[2], maxExtents_[0], maxExtents_[1], maxExtents_[2]);
 
     this.internalTextureCount_ = streamData_.getUint8(stream_.index_, true); stream_.index_ += 1;
 
@@ -173,6 +177,12 @@ struct Metanode {
 
     this.minHeight_ = streamData_.getInt16(stream_.index_, true); stream_.index_ += 2;
     this.maxHeight_ = streamData_.getInt16(stream_.index_, true); stream_.index_ += 2;
+
+    if (version_ < 4) {
+        this.minZ_ = this.minHeight_;
+        this.maxZ_ = this.maxHeight_;
+        this.surrogatez_ =this.minHeight_;
+    }
     
     if (this.metatile_.version_ >= 3) {
         if (this.metatile_.flags_ & (1<<7)) {
@@ -198,7 +208,6 @@ Melown.MapMetanode.prototype.clone = function() {
     node_.flags_ = this.flags_;
     node_.minHeight_ = this.minHeight_;
     node_.maxHeight_ = this.maxHeight_;
-    node_.bbox_ = this.bbox_.clone();
     node_.internalTextureCount_ = this.internalTextureCount_;
     node_.pixelSize_ = this.pixelSize_;
     node_.displaySize_ = this.displaySize_;
@@ -212,6 +221,11 @@ Melown.MapMetanode.prototype.clone = function() {
     for (var i = 0, li = this.credits_.length; i < li; i++) {
         node_.credits_[i] = this.credits_[i];
     }
+
+    if (this.bbox_) {
+        node_.bbox_ = this.bbox_.clone();
+    }
+
 
 //    if (this.map_.config_.mapGeocentCulling_) {
         node_.diskPos_ = this.diskPos_;
@@ -241,6 +255,8 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
         return;
     }
 
+    var version_ = this.metatile_.version_;
+
     if (map_.config_.mapPreciseCulling_) { //use division node srs
         if (virtual_) {
             return; //result is same for each tile id
@@ -250,26 +266,34 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
         
         if (this.id_[0] > map_.maxDivisionNodeDepth_) {
             var pos2_ = map_.tmpVec5_;
+            
+            var divisionNode_ = this.map_.getSpatialDivisionNodeFromId(this.id_);
 
-            this.map_.getSpatialDivisionNodeAndExtents2(this.id_, pos2_, this.divisionNode_);
+            this.map_.getSpatialDivisionNodeAndExtents2(this.id_, pos2_, divisionNode_);
             var node_ = pos2_[0]; 
             var llx_ = pos2_[1];
             var lly_ = pos2_[2];
             var urx_ = pos2_[3];
             var ury_ = pos2_[4];
 
-            var res_ = this.map_.getSpatialDivisionNodeAndExtents(this.id_);
+            this.divisionNode_ = divisionNode_;
+
+            /*if (this.id_[0] == 2 && this.id_[1] == 0 && this.id_[2] == 2) {
+                var res_ = this.map_.getSpatialDivisionNodeAndExtents(this.id_);
+                res_ = res_;
+            }*/
+            
         } else {
             var res_ = this.map_.getSpatialDivisionNodeAndExtents(this.id_);
-            var node_ = res_[0]; 
+            var divisionNode_ = res_[0]; 
             var llx_ = res_[1][0][0];
             var lly_ = res_[1][0][1];
             var urx_ = res_[1][1][0];
             var ury_ = res_[1][1][1];
-            this.divisionNode_ = node_;
+            this.divisionNode_ = divisionNode_;
         }
         
-        var h = this.minHeight_;
+        var h = this.minZ_;
         //var middle_ = [(ur_[0] + ll_[0])* 0.5, (ur_[1] + ll_[1])* 0.5, h];
         //var normal_ = [0,0,0];
         
@@ -277,17 +301,17 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
         pos_[1] = (ury_ + lly_)* 0.5; 
         pos_[2] = h; 
         
-        node_.getPhysicalCoordsFast(pos_, true, this.diskPos_, 0, 0);
+        divisionNode_.getPhysicalCoordsFast(pos_, true, this.diskPos_, 0, 0);
         this.diskDistance_ = Melown.vec3.length(this.diskPos_); 
         Melown.vec3.normalize(this.diskPos_, this.diskNormal_);
         //this.diskNormal_ = normal_;   
         var normal_ = this.diskNormal_;
         
         
-        if (node_.id_[0] == 1 && node_.id_[1] ==  1 && node_.id_[2] == 0) {   //???? debug?????
-            var res_ = this.map_.getSpatialDivisionNodeAndExtents(this.id_);
-            node_ = node_;
-        }
+        //if (divisionNode_.id_[0] == 1 && divisionNode_.id_[1] ==  1 && divisionNode_.id_[2] == 0) {   //???? debug?????
+          //  var res_ = this.map_.getSpatialDivisionNodeAndExtents(this.id_);
+          //  node_ = node_;
+        //}
        
         pos_[0] = urx_; 
         pos_[1] = ury_; 
@@ -295,26 +319,26 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
         
         var bbox_ = this.bbox2_;
 
-        node_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 0);
+        divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 0);
 
         pos_[1] = lly_; 
-        node_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 3);
+        divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 3);
         
         pos_[0] = llx_; 
-        node_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 6);
+        divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 6);
         
         pos_[1] = ury_; 
-        node_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 9);
+        divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 9);
 
         var normalize_ = Melown.vec3.normalize2; 
         var dot_ = Melown.vec3.dot; 
 
         if (map_.config_.mapPreciseBBoxTest_) { 
-            var height_ = this.maxHeight_ - h;
+            var height_ = this.maxZ_ - h;
             
-            if (this.id_[0] >= 4) {
-                node_ = node_;
-            }
+            //if (this.id_[0] >= 4) {
+              //  divisionNode_ = divisionNode_;
+            //}
 
             normalize_(bbox_, 0, pos_);
             var d1_ = dot_(normal_, pos_);
@@ -392,6 +416,10 @@ Melown.MapMetanode.prototype.getWorldMatrix = function(geoPos_, matrix_) {
 };
 
 Melown.MapMetanode.prototype.drawBBox = function(cameraPos_) {
+    if (this.metatile_.version_ >= 5) {
+        return this.drawBBox2(cameraPos_);
+    }
+
     var renderer_ = this.map_.renderer_;
 
     renderer_.gpu_.useProgram(renderer_.progBBox_, ["aPosition"]);
@@ -426,7 +454,7 @@ Melown.MapMetanode.prototype.drawBBox2 = function(cameraPos_) {
     }
     
     var renderer_ = this.map_.renderer_;
-    //renderer_.drawLineString([spoints_[0], spoints_[1], spoints_[2], spoints_[3], spoints_[0] ], 2, [0,1,0.5,255], false, false, true);
+    renderer_.drawLineString([spoints_[0], spoints_[1], spoints_[2], spoints_[3], spoints_[0] ], 2, [0,1,0.5,255], false, false, true);
     renderer_.drawLineString([spoints_[4], spoints_[5], spoints_[6], spoints_[7], spoints_[4] ], 2, [0,1,0.5,255], false, false, true);
 };
 

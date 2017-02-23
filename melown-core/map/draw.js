@@ -585,9 +585,9 @@ Melown.Map.prototype.drawMeshTile = function(tile_, node_, cameraPos_, pixelSize
     if (tile_.surfaceMesh_.isReady(preventLoad_, priority_) && !preventLoad_) {
         var submeshes_ = tile_.surfaceMesh_.submeshes_;
 
-        if (tile_.id_[0] == 8 &&
-            tile_.id_[1] == 70 &&
-            tile_.id_[2] == 43) {
+        if (tile_.id_[0] == 14 &&
+            tile_.id_[1] == 4421 &&
+            tile_.id_[2] == 2804) {
             tile_ = tile_;
         }
 
@@ -1236,11 +1236,11 @@ Melown.Map.prototype.updateTileSurfaceBounds = function(tile_, submesh_, surface
 
 Melown.Map.prototype.drawTileInfo = function(tile_, node_, cameraPos_, mesh_, pixelSize_) {
     if (!this.drawMeshBBox_) {
-        if (this.drawCredits_) {
-            node_.drawBBox2(cameraPos_);
-        } else {
+        //if (this.drawCredits_) {
+          //  node_.drawBBox2(cameraPos_);
+        //} else {
             node_.drawBBox(cameraPos_);
-        }
+        //}
     }
 
     //get screen pos of node
@@ -1260,31 +1260,31 @@ Melown.Map.prototype.drawTileInfo = function(tile_, node_, cameraPos_, mesh_, pi
     //draw lods
     if (this.drawLods_) {
         text_ = "" + tile_.id_[0];
-        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]-4*factor_), 4*factor_, text_, [255,0,0,255], pos_[2]);
+        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]-4*factor_), 4*factor_, text_, [1,0,0,1], pos_[2]);
     }
 
     //draw indices
     if (this.drawIndices_) {
         var text_ = "" + tile_.id_[1] + " " + tile_.id_[2];
-        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]-11*factor_), 4*factor_, text_, [0,255,255,255], pos_[2]);
+        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]-11*factor_), 4*factor_, text_, [0,1,1,1], pos_[2]);
     }
 
     //draw positions
     if (this.drawPositions_) {
         var text_ = "" + min_[0].toFixed(1) + " " + min_[1].toFixed(1) + " " + min_[2].toFixed(1);
-        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+3*factor_), 4*factor_, text_, [0,255,255,255], pos_[2]);
+        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+3*factor_), 4*factor_, text_, [0,1,1,1], pos_[2]);
     }
 
     //draw face count
     if (this.drawFaceCount_ && mesh_) {
         var text_ = "" + mesh_.faces_ + " - " + mesh_.submeshes_.length + ((tile_.surface_ && tile_.surface_.glue_) ? " - 1" : " - 0");
-        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [0,255,0,255], pos_[2]);
+        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [0,1,0,1], pos_[2]);
     }
 
     //draw order
     if (this.drawOrder_) {
         var text_ = "" + this.drawTileCounter_;
-        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [0,255,0,255], pos_[2]);
+        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [0,1,0,1], pos_[2]);
     }
 
     if (this.drawSurfaces_) {
@@ -1292,29 +1292,29 @@ Melown.Map.prototype.drawTileInfo = function(tile_, node_, cameraPos_, mesh_, pi
         if (node_.alien_) {
             text_ = "[A]" + text_;
         }
-        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [255,255,255,255], pos_[2]);
+        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [1,1,1,1], pos_[2]);
     }
 
     if (this.drawBoundLayers_) {
         if (tile_.boundsDebug_) {
-            var surface_ = tile_.surface_;
+            var surface_ = tile_.resourceSurface_;
             if (surface_.glue_) { 
               
                 for (var i = 0, li = surface_.id_.length; i < li; i++) {
                     if (tile_.boundsDebug_[surface_.id_[i]]) {
                         var text_ = "< " + surface_.id_[i] + " >";
-                        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+(10+i*7*2)*factor_), 4*factor_, text_, [255,255,255,255], pos_[2]);
+                        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+(10+i*7*2)*factor_), 4*factor_, text_, [1,1,1,1], pos_[2]);
                         text_ = JSON.stringify(tile_.boundsDebug_[surface_.id_[i]]);
-                        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+(17+i*7*2)*factor_), 4*factor_, text_, [255,255,255,255], pos_[2]);
+                        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+(17+i*7*2)*factor_), 4*factor_, text_, [1,1,1,1], pos_[2]);
                     }
                 }
                 
             } else if (tile_.boundsDebug_[surface_.id_]) {
                 var text_ = "< " + surface_.id_ + " >";
-                this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [255,255,255,255], pos_[2]);
+                this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [1,1,1,1], pos_[2]);
     
                 text_ = JSON.stringify(tile_.boundsDebug_[surface_.id_]);
-                this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+17*factor_), 4*factor_, text_, [255,255,255,255], pos_[2]);
+                this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+17*factor_), 4*factor_, text_, [1,1,1,1], pos_[2]);
             }
         }
     }
@@ -1337,14 +1337,14 @@ Melown.Map.prototype.drawTileInfo = function(tile_, node_, cameraPos_, mesh_, pi
 
         text_ += "}";
 
-        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [255,255,255,255], pos_[2]);
+        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+10*factor_), 4*factor_, text_, [1,1,1,1], pos_[2]);
     }
 
     //draw distance
     if (this.drawDistance_) {
         var text_ = "" + tile_.distance_.toFixed(2) + "  " + tile_.texelSize_.toFixed(3) + "  " + node_.pixelSize_.toFixed(3);
         text_ += "--" + tile_.texelSize2_.toFixed(3); 
-        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+17*factor_), 4*factor_, text_, [255,0,255,255], pos_[2]);
+        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+17*factor_), 4*factor_, text_, [1,0,1,1], pos_[2]);
     }
 
     //draw node info
@@ -1352,7 +1352,7 @@ Melown.Map.prototype.drawTileInfo = function(tile_, node_, cameraPos_, mesh_, pi
         var children_ = ((node_.flags_ & ((15)<<4))>>4);
         var text_ = "" + node_.flags_.toString(2) + "-" + ((children_ & 1) ? "1" : "0") + ((children_ & 2) ? "1" : "0") + ((children_ & 4) ? "1" : "0") + ((children_ & 8) ? "1" : "0");
         text_ += "-" + node_.minHeight_ + "/" + node_.maxHeight_; 
-        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]-18*factor_), 4*factor_, text_, [255,0,255,255], pos_[2]);
+        this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]-18*factor_), 4*factor_, text_, [1,0,1,1], pos_[2]);
     }
     
     //draw texture size
@@ -1365,7 +1365,7 @@ Melown.Map.prototype.drawTileInfo = function(tile_, node_, cameraPos_, mesh_, pi
 
                 if (texture_ && texture_.gpuTexture_) {
                     var text_ = "[" + i + "]: " + texture_.gpuTexture_.width_ + " x " + texture_.gpuTexture_.height_;
-                    this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+(17+i*7*2)*factor_), 4*factor_, text_, [255,255,255,255], pos_[2]);
+                    this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]+(17+i*7*2)*factor_), 4*factor_, text_, [1,1,1,1], pos_[2]);
                 }
             }
         }

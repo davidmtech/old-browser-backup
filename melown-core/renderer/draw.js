@@ -310,7 +310,7 @@ Melown.Renderer.prototype.drawImage = function(x, y, lx, ly, texture_, color_, d
         x + lx, y + ly, 1, 1,
         x,  y + ly,  0, 1  ]);
 
-    this.progImage_.setVec4("uColor", (color_ != null ? color_ : [255,255,255,255]));
+    this.progImage_.setVec4("uColor", (color_ != null ? color_ : [1,1,1,1]));
     this.progImage_.setFloat("uDepth", depth_ != null ? depth_ : 0);
 
 
@@ -377,7 +377,7 @@ Melown.Renderer.prototype.drawBillboard = function(mvp_, texture_, color_, depth
         x + lx, y + ly, 1, 1,
         x,  y + ly,  0, 1  ]);
 
-    this.progImage_.setVec4("uColor", (color_ != null ? color_ : [255,255,255,255]));
+    this.progImage_.setVec4("uColor", (color_ != null ? color_ : [1,1,1,1]));
     this.progImage_.setFloat("uDepth", 0);
 
     gl_.drawElements(gl_.TRIANGLES, indices_.numItems, gl_.UNSIGNED_SHORT, 0);
@@ -425,7 +425,7 @@ Melown.Renderer.prototype.drawFlatImage = function(x, y, lx, ly, texture_, color
         x + lx, y + ly, 1, 1,
         x,  y + ly,  0, 1  ]);
 
-    this.progImage_.setVec4("uColor", (color_ != null ? color_ : [255,255,255,255]));
+    this.progImage_.setVec4("uColor", (color_ != null ? color_ : [1,1,1,1]));
     this.progImage_.setFloat("uDepth", depth_ != null ? depth_ : 0);
 
     gl_.drawElements(gl_.TRIANGLES, indices_.numItems, gl_.UNSIGNED_SHORT, 0);

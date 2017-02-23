@@ -23,6 +23,7 @@ Melown.Inspector.prototype.initStatsPanel = function() {
         + "#melown-stats-panel-info {"
             + "margin-top: 5px;"
             + "margin-bottom: 3px;"
+            + "overflow: hidden;"
         + "}"
 
         + "#melown-stats-panel-info table {"

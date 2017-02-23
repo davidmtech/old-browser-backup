@@ -7,6 +7,7 @@ Melown.MapRefFrame = function(map_, json_) {
     this.valid_ = false;
     this.id_ = json_["id"] || null;
     this.description_ = json_["description"] || "";
+    this.nodesMap_ = [];
 
     var model_ = json_["model"];
 
@@ -57,6 +58,7 @@ Melown.MapRefFrame = function(map_, json_) {
 
     for (var i = 0, li = divisionNodes_.length; i < li; i++) {
         var node_ = this.parseNode(divisionNodes_[i]);
+        this.nodesMap_["" + node_.id_[0] + "."  + node_.id_[1] + "." + node_.id_[2]] = node_;
         this.division_.nodes_.push(node_);
     }
 

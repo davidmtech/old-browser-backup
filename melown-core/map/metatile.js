@@ -229,7 +229,7 @@ Melown.MapMetatile.prototype.parseMetatatile = function(stream_) {
 
     this.version_ = streamData_.getUint16(stream_.index_, true); stream_.index_ += 2;
 
-    if (this.version_ > 3) {
+    if (this.version_ > 5) {
         return;
     }
 
@@ -405,9 +405,17 @@ Melown.MapMetatile.prototype.applyMetanodeCredits = function(x, y) {
 
 Melown.MapMetatile.prototype.parseMetatatileNodes = function(stream_) {
     this.metanodesIndex_ = stream_.index_;
+    this.metanodeSize_ = 1 + 1 + 2 + 2 + 2 + 2;
+    
+    if (this.version_ >= 5) {
+        this.metanodeSize_ += 3 * 4;
+    } else {
+        this.metanodeSize_ += Math.floor((6 * (this.id_[0] + 2) + 7) / 8);
 
-    this.metanodeSize_ = Math.floor((6 * (this.id_[0] + 2) + 7) / 8);
-    this.metanodeSize_ += 1 + 1 + 2 + 2 + 2 + 2; 
+        if (this.version_ == 4) {
+            this.metanodeSize_ += 3 * 4;
+        }
+    }
 
     if (this.version_ >= 3) {
         if (this.flags_ & (1<<7)) {

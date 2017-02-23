@@ -289,6 +289,12 @@ Melown.MapSurfaceTree.prototype.drawSurface = function(shift_) {
                     storeNodesBuffer_.push(tile_);
                 }
                 
+                /*var n = childrenBuffer_[j].metanode_;
+                if ((n.id_[0] == 2 && n.id_[1] == 3 && n.id_[2] == 1)) {
+                    n = n;
+                }*/
+                
+                
                 if (/*node_.hasGeometry() && */tile_.texelSize_ <= texelSizeFit_) {
                     
                     drawBuffer_[drawBufferIndex_] = tile_;
@@ -306,6 +312,10 @@ Melown.MapSurfaceTree.prototype.drawSurface = function(shift_) {
                         var child_ = tile_.children_[j];
                         if (child_) {
                             childrenCount_++;
+                            
+                            //if (child_.id_[0] == 2 && child_.id_[1] == 3 && child_.id_[2] == 0) {
+                              //  child_ = child_;
+                            //}
        
                             if (child_.isMetanodeReady(this, child_.id_[0])) { //lod is used as priority
                                 
@@ -366,8 +376,13 @@ Melown.MapSurfaceTree.prototype.drawSurface = function(shift_) {
     
                         //add childern to new process buffer 
                         for (var j = 0, lj = childrenBuffer_.length; j < lj; j++) {
-                            newProcessBuffer_[newProcessBufferIndex_] = childrenBuffer_[j];
-                            newProcessBufferIndex_++;
+                            
+                            /*var n = childrenBuffer_[j].metanode_.divisionNode_;
+                            if ((n.id_[0] == 1 && n.id_[1] == 1 && n.id_[2] == 0)) {*/
+                                newProcessBuffer_[newProcessBufferIndex_] = childrenBuffer_[j];
+                                newProcessBufferIndex_++;
+                            /*}*/
+                            
                         }
                     } else {
                         drawBuffer_[drawBufferIndex_] = tile_;
@@ -569,8 +584,12 @@ Melown.MapSurfaceTree.prototype.drawGeodataSurface2 = function(shift_) {
     
                         //add childern to new process buffer 
                         for (var j = 0, lj = childrenBuffer_.length; j < lj; j++) {
-                            newProcessBuffer_[newProcessBufferIndex_] = childrenBuffer_[j];
-                            newProcessBufferIndex_++;
+
+                            //var n = childrenBuffer_[j].metanode_.divisionNode_;
+                            //if ((n.id_[0] == 1 && n.id_[1] == 1 && n.id_[2] == 0)) {
+                                newProcessBuffer_[newProcessBufferIndex_] = childrenBuffer_[j];
+                                newProcessBufferIndex_++;
+                            //}
                         }
                     } else {
                         drawBuffer_[drawBufferIndex_] = tile_;
@@ -698,11 +717,12 @@ Melown.MapSurfaceTree.prototype.drawGeodataSurface = function(shift_) {
                 tile_ = tile_;    
             }*/ 
 
+            /*
             if (tile_.id_[0] == 12 &&
                 tile_.id_[1] == 1107 &&
                 tile_.id_[2] == 688) {
                 tile_ = tile_;
-            }
+            }*/
             
             node_ = tile_.metanode_;
 

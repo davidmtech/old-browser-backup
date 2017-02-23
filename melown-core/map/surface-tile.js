@@ -622,10 +622,14 @@ Melown.MapSurfaceTile.prototype.bboxVisible = function(id_, bbox_, cameraPos_, n
         }
     }
 
-    if (!(map_.geocent_ && map_.config_.mapPreciseBBoxTest_) || id_[0] < 4) {
-        return map_.camera_.bboxVisible(bbox_, cameraPos_);
-    } else {
+    if (node_.metatile_.version_ >= 5) {
         return map_.camera_.pointsVisible(node_.bbox2_, cameraPos_);
+    } else {
+        if (!(map_.geocent_ && map_.config_.mapPreciseBBoxTest_) || id_[0] < 4) {
+            return map_.camera_.bboxVisible(bbox_, cameraPos_);
+        } else {
+            return map_.camera_.pointsVisible(node_.bbox2_, cameraPos_);
+        }
     }
 };
 

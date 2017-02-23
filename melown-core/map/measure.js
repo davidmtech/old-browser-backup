@@ -359,11 +359,20 @@ Melown.Map.prototype.getSpatialDivisionNodeAndExtents = function(id_) {
     return [bestNode_, [[ll_[0] + dx_ * nx_, ur_[1] + dy_ * ny_], [ll_[0] + dx_ * (nx_+1), ur_[1] + dy_ * (ny_+1)] ]];
 };
 
+Melown.Map.prototype.getSpatialDivisionNodeFromId = function(id_) {
+    var nodes_ = this.referenceFrame_.getSpatialDivisionNodes();
+
+    var shift_ = id_[0] - this.maxDivisionNodeDepth_;
+    var nx_ = id_[1] >> shift_;
+    var ny_ = id_[2] >> shift_;
+    
+    return this.referenceFrame_.nodesMap_["" + this.maxDivisionNodeDepth_ + "."  + nx_ + "." + ny_];
+};
 
 Melown.Map.prototype.getSpatialDivisionNodeAndExtents2 = function(id_, res_, divisionNode_) {
-    if (!divisionNode_) {
-        debugger
-    }
+    //if (!divisionNode_) {
+      //  debugger
+    //}
     
     var shift_ = id_[0] - divisionNode_.id_[0];
     var factor_ = 1.0 / Math.pow(2, shift_);
