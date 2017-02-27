@@ -1124,7 +1124,7 @@ Melown.Map.prototype.updateTileSurfaceBounds = function(tile_, submesh_, surface
 
                     var texture_ = tile_.boundTextures_[layer_.id_];
 
-                    if (!texture_) {
+                    if (!texture_) { //TODO: make sure that we load only textures which we need  
                         var path_ = layer_.getUrl(tile_.id_);
                         texture_ = tile_.resources_.getTexture(path_, null, extraBound_, {tile_: tile_, layer_: layer_}, tile_, false);
                         texture_.isReady(true); //check for mask but do not load

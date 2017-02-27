@@ -246,8 +246,8 @@ Melown.Map.prototype.getSurfaceHeightNodeOnly = function(coords_, lod_, storeSta
 
 Melown.Map.prototype.getHeightmapValue = function(coords_, node_, params_) {
     var heightMap_ = params_.heightMap_;
-    var data_ = heightMap_.imageData_;
-    var dataExtents_ = heightMap_.imageExtents_;
+    var data_ = heightMap_.getImageData();
+    var dataExtents_ = heightMap_.getImageExtents();
     var mapExtents_ = params_.heightMapExtents_;
 
     //relative tile coords
