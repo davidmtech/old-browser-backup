@@ -141,6 +141,30 @@ Melown.vec3.normalize2 = function (a, i, b) {
     b[1] = d * g;
     b[2] = e * g;
 };
+Melown.vec3.normalize3 = function (a, i, b, j) {
+    var c = a[i],
+        d = a[i+1],
+        e = a[i+2],
+        g = Math.sqrt(c * c + d * d + e * e);
+    if (g) {
+        if (g == 1) {
+            b[j] = c;
+            b[j+1] = d;
+            b[j+2] = e;
+            return b;
+        }
+    } else {
+        b[j] = 0;
+        b[j+1] = 0;
+        b[j+2] = 0;
+        return b;
+    }
+    g = 1 / g;
+    b[j] = c * g;
+    b[j+1] = d * g;
+    b[j+2] = e * g;
+};
+
 Melown.vec3.cross = function (a, b, c) {
     c || (c = a);
     var d = a[0],
@@ -162,6 +186,12 @@ Melown.vec3.length = function (a) {
 };
 Melown.vec3.dot = function (a, b) {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+};
+Melown.vec3.dot2 = function (a, b, i) {
+    return a[0] * b[i] + a[1] * b[i+1] + a[2] * b[i+2];
+};
+Melown.vec3.dot3 = function (a, i, b, j) {
+    return a[i] * b[j] + a[i+1] * b[j+1] + a[i+2] * b[j+2];
 };
 Melown.vec3.squareDistance = function (a, b) {
     var dx = b[0] - a[0];

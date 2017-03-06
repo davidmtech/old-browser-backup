@@ -278,7 +278,7 @@ Melown.MapPosition.prototype.getCameraCoords = function(heightMode_) {
       
         var coords_ = this.getCoords();
         var terrainHeight_ = 0;
-        var lod_ = 1;
+        var lod_ = -1;
 
         //convert height to fix
         if (this.getHeightMode() == "float") {
@@ -311,7 +311,10 @@ Melown.MapPosition.prototype.getCameraCoords = function(heightMode_) {
             return coords_;
         } else {
             //get float height for new coords
-            //var lod_ =  this.map_.getOptimalHeightLod(coords_, this.getViewExtent(), this.map_.config_.mapNavSamplesPerViewExtent_);
+            if (lod_ == -1) {
+                lod_ =  this.map_.getOptimalHeightLod(coords_, this.getViewExtent(), this.map_.config_.mapNavSamplesPerViewExtent_);
+            }
+            
             var surfaceHeight_ = this.map_.getSurfaceHeight(coords_, lod_);
             coords_[2] -= surfaceHeight_[0];
 
@@ -387,36 +390,34 @@ Melown.MapPosition.prototype.getCanvasCoords = function(lod_, physical_) {
 
 Melown.MapPosition.prototype.getNED = function() {
     var pos_ = this.clone();
-    //pos_.convertHeightMode("fix");
-   // pos_.setCoords2([0,90]);
     var coords_ = pos_.getCoords();
     coords_[2] = 0;
     var centerCoords_ = this.map_.convertCoords(coords_, "navigation", "physical");
-/*
-    var tcoords01_ = this.map_.convertCoords([0,0], "navigation", "physical");
-    var tcoords06_ = this.map_.convertCoords([-180,0], "navigation", "physical");
-    var tcoords02_ = this.map_.convertCoords([90,0], "navigation", "physical");
-    var tcoords03_ = this.map_.convertCoords([0,90], "navigation", "physical");
-    var tcoords04_ = this.map_.convertCoords([-90,0], "navigation", "physical");
-    var tcoords05_ = this.map_.convertCoords([0,-90], "navigation", "physical");
-    var tcoords07_ = this.map_.convertCoords([0,-100], "navigation", "physical");
-*/
 
     if (this.map_.getNavigationSrs().isProjected()) {
         var upCoords_ = this.map_.convertCoords([coords_[0], coords_[1] + 100, coords_[2]], "navigation", "physical");
         var rightCoords_ = this.map_.convertCoords([coords_[0] + 100, coords_[1], coords_[2]], "navigation", "physical");
     } else {
-        var geodesic_ = this.map_.getGeodesic();
-    
-        var r = geodesic_["Direct"](coords_[1], coords_[0], 0, -100);
-        var upPos_ = this.clone();
-        upPos_.setCoords2([r["lon2"], r["lat2"]]);        
-        var upCoords_ = this.map_.convertCoords(upPos_.getCoords(), "navigation", "physical");
+        var cy = (coords_[1] + 90) - 0.0001;
+        var cx = (coords_[0] + 180) + 0.0001;
 
-        r = geodesic_["Direct"](coords_[1], coords_[0], 90, 100);
-        var rightPos_ = this.clone();
-        rightPos_.setCoords2([r["lon2"], r["lat2"]]);        
-        var rightCoords_ = this.map_.convertCoords(rightPos_.getCoords(), "navigation", "physical");
+        if (cy < 0 || cx > 180) { //if we are out of bounds things start to be complicated
+            var geodesic_ = this.map_.getGeodesic();
+        
+            var r = geodesic_["Direct"](coords_[1], coords_[0], 0, -100);
+            var upPos_ = this.clone();
+            upPos_.setCoords2([r["lon2"], r["lat2"]]);        
+            var upCoords_ = this.map_.convertCoords(upPos_.getCoords(), "navigation", "physical");
+    
+            r = geodesic_["Direct"](coords_[1], coords_[0], 90, 100);
+            var rightPos_ = this.clone();
+            rightPos_.setCoords2([r["lon2"], r["lat2"]]);        
+            var rightCoords_ = this.map_.convertCoords(rightPos_.getCoords(), "navigation", "physical");
+        } else {
+            // substraction instead of addition is probably case of complicated view matrix calculation
+            var upCoords_ = this.map_.convertCoords([coords_[0], coords_[1] - 0.0001, coords_[2]], "navigation", "physical");
+            var rightCoords_ = this.map_.convertCoords([coords_[0] + 0.0001, coords_[1], coords_[2]], "navigation", "physical");
+        }
     }
 
     var up_ = [upCoords_[0] - centerCoords_[0],
@@ -428,7 +429,6 @@ Melown.MapPosition.prototype.getNED = function() {
                   rightCoords_[2] - centerCoords_[2]]; 
 
     var dir_ = [0,0,0];
-
     Melown.vec3.normalize(up_);
     Melown.vec3.normalize(right_);
     Melown.vec3.cross(up_, right_, dir_);
@@ -439,7 +439,6 @@ Melown.MapPosition.prototype.getNED = function() {
         direction_ : up_,
         north_ : dir_        
     };
-
 };
 
 Melown.MapPosition.prototype.getCameraInfo = function(projected_, clampTilt_) {
