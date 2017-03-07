@@ -256,6 +256,8 @@ Melown.MapMetatile.prototype.parseMetatatile = function(stream_) {
 
     this.parseMetatatileCredits(stream_);
     this.parseMetatatileNodes(stream_);
+    
+    this.useVersion_ = (this.map_.config_.mapForceMetatileV3_ && this.version_ < 5) ? 3 : this.version_; 
 };
 
 

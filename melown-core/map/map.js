@@ -121,6 +121,7 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.parseConfig();
 
     this.geocent_ = !this.getNavigationSrs().isProjected();
+    this.planetRadius_ = this.geocent_ ? this.getNavigationSrs().getSrsInfo()["a"] : 100;
     this.processBuffer_ = new Array(60000);
     this.processBuffer2_ = new Array(60000);
     this.drawBuffer_ = new Array(60000);
@@ -719,6 +720,7 @@ Melown.Map.prototype.setConfigParam = function(key_, value_) {
         case "mapPreciseBBoxTest":            this.config_.mapPreciseBBoxTest_ = Melown.validateBool(value_, true); break;
         case "mapPreciseDistanceTest":        this.config_.mapPreciseDistanceTest_ = Melown.validateBool(value_, false); break;
         case "mapHeightfiledWhenUnloaded":    this.config_.mapHeightfiledWhenUnloaded_= Melown.validateBool(value_, false); break;
+        case "mapForceMetatileV3":            this.config_.mapForceMetatileV3_= Melown.validateBool(value_, false); break;
         case "mapVirtualSurfaces":            this.config_.mapVirtualSurfaces_ = Melown.validateBool(value_, true); break;
         case "mario":                         this.config_.mario_ = Melown.validateBool(value_, true); break;
     }
@@ -756,6 +758,7 @@ Melown.Map.prototype.getConfigParam = function(key_) {
         case "mapPreciseBBoxTest":            return this.config_.mapPreciseBBoxTest_;
         case "mapPreciseDistanceTest":        return this.config_.mapPreciseDistanceTest_;
         case "mapHeightfiledWhenUnloaded":    return this.config_.mapHeightfiledWhenUnloaded_;
+        case "mapForceMetatileV3":            return this.config_.mapForceMetatileV3_;
         case "mapVirtualSurfaces":            return this.config_.mapVirtualSurfaces_;
         case "mario":                         return this.config_.mario_;
     }

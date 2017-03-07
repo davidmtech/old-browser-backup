@@ -159,7 +159,7 @@ Melown.MapSurfaceTree.prototype.draw = function() {
 Melown.MapSurfaceTree.prototype.updateNodeHeightExtents = function(tile_, node_) {
     //debugger
     
-    if (!node_.heightReady_) {
+    if (!node_.heightReady_ && node_.metatile_.useVersion_ < 4) {
         var parent_ = tile_.parent_;
 
         if (node_.hasNavtile()) {
@@ -176,6 +176,8 @@ Melown.MapSurfaceTree.prototype.updateNodeHeightExtents = function(tile_, node_)
 
                 node_.minHeight_ = parentNode_.minHeight_;
                 node_.maxHeight_ = parentNode_.maxHeight_;
+                node_.minZ_ = parentNode_.minZ_;
+                node_.maxZ_ = parentNode_.maxZ_;
                 node_.generateCullingHelpers();
                 break;
             }

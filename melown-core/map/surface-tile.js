@@ -571,14 +571,16 @@ Melown.MapSurfaceTile.prototype.createVirtualMetanode = function(tree_, priority
                             node_.credits_.push(metanode_.credits_[j]);
                         } 
                     }*/
-
-                    //!!!!!!removed for debug
-                    node_.bbox_.min_[0] = Math.min(node_.bbox_.min_[0], metanode_.bbox_.min_[0]); 
-                    node_.bbox_.min_[1] = Math.min(node_.bbox_.min_[1], metanode_.bbox_.min_[1]); 
-                    node_.bbox_.min_[2] = Math.min(node_.bbox_.min_[2], metanode_.bbox_.min_[2]); 
-                    node_.bbox_.max_[0] = Math.max(node_.bbox_.max_[0], metanode_.bbox_.max_[0]); 
-                    node_.bbox_.max_[1] = Math.max(node_.bbox_.max_[1], metanode_.bbox_.max_[1]); 
-                    node_.bbox_.max_[2] = Math.max(node_.bbox_.max_[2], metanode_.bbox_.max_[2]);
+                   
+                    if (metatile_.useVersion_ < 4) {
+                        //!!!!!!removed for debug
+                        node_.bbox_.min_[0] = Math.min(node_.bbox_.min_[0], metanode_.bbox_.min_[0]); 
+                        node_.bbox_.min_[1] = Math.min(node_.bbox_.min_[1], metanode_.bbox_.min_[1]); 
+                        node_.bbox_.min_[2] = Math.min(node_.bbox_.min_[2], metanode_.bbox_.min_[2]); 
+                        node_.bbox_.max_[0] = Math.max(node_.bbox_.max_[0], metanode_.bbox_.max_[0]); 
+                        node_.bbox_.max_[1] = Math.max(node_.bbox_.max_[1], metanode_.bbox_.max_[1]); 
+                        node_.bbox_.max_[2] = Math.max(node_.bbox_.max_[2], metanode_.bbox_.max_[2]);
+                    }
                 }
             }
         }
@@ -622,10 +624,10 @@ Melown.MapSurfaceTile.prototype.bboxVisible = function(id_, bbox_, cameraPos_, n
         }
     }
 
-    if (node_.metatile_.version_ >= 5) {
+    if (node_.metatile_.useVersion_ >= 4) {
         return map_.camera_.pointsVisible(node_.bbox2_, cameraPos_);
     } else {
-        if (!(map_.geocent_ && map_.config_.mapPreciseBBoxTest_) || id_[0] < 4) {
+        if (!(map_.geocent_ && (map_.config_.mapPreciseBBoxTest_)) || id_[0] < 4) {
             return map_.camera_.bboxVisible(bbox_, cameraPos_);
         } else {
             return map_.camera_.pointsVisible(node_.bbox2_, cameraPos_);
@@ -809,7 +811,7 @@ Melown.MapSurfaceTile.prototype.updateTexelSize = function() {
     var texelSizeFit_ = map_.texelSizeFit_;
     var node_ = this.metanode_;
     var cameraPos_ = map_.cameraPosition_;
-    var preciseDistance_ = (map_.geocent_ && map_.config_.mapPreciseDistanceTest_);  
+    var preciseDistance_ = (map_.geocent_ && (map_.config_.mapPreciseDistanceTest_ || node_.metatile_.useVersion_ >= 4));  
 
     if (node_.hasGeometry()) {
         var screenPixelSize_ = Number.POSITIVE_INFINITY;

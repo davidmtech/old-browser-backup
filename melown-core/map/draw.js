@@ -585,11 +585,11 @@ Melown.Map.prototype.drawMeshTile = function(tile_, node_, cameraPos_, pixelSize
     if (tile_.surfaceMesh_.isReady(preventLoad_, priority_) && !preventLoad_) {
         var submeshes_ = tile_.surfaceMesh_.submeshes_;
 
-        if (tile_.id_[0] == 14 &&
+        /*if (tile_.id_[0] == 14 &&
             tile_.id_[1] == 4421 &&
             tile_.id_[2] == 2804) {
             tile_ = tile_;
-        }
+        }*/
 
         tile_.drawCommands_ = [[], [], []]; //??
         tile_.imageryCredits_ = {};
@@ -1244,16 +1244,38 @@ Melown.Map.prototype.drawTileInfo = function(tile_, node_, cameraPos_, mesh_, pi
     }
 
     //get screen pos of node
-    var min_ = node_.bbox_.min_;
-    var max_ = node_.bbox_.max_;
-
-    var pos_ =  this.core_.getRendererInterface().getCanvasCoords(
-                    [(min_[0] + (max_[0] - min_[0])*0.5) - cameraPos_[0],
-                     (min_[1] + (max_[1] - min_[1])*0.5) - cameraPos_[1],
-                     (max_[2]) - cameraPos_[2]],
-                     this.camera_.getMvpMatrix());
-
-    pos_[2] = pos_[2] * 0.9992;
+    if (node_.metatile_.useVersion_ < 4) {
+        var min_ = node_.bbox_.min_;
+        var max_ = node_.bbox_.max_;
+    
+        var pos_ =  this.core_.getRendererInterface().getCanvasCoords(
+                        [(min_[0] + (max_[0] - min_[0])*0.5) - cameraPos_[0],
+                         (min_[1] + (max_[1] - min_[1])*0.5) - cameraPos_[1],
+                         (max_[2]) - cameraPos_[2]],
+                         this.camera_.getMvpMatrix());
+    
+        pos_[2] = pos_[2] * 0.9992;
+    } else {
+        var dx_ = node_.bbox2_[3] - node_.bbox2_[0]; 
+        var dy_ = node_.bbox2_[4] - node_.bbox2_[1]; 
+        var dz_ = node_.bbox2_[5] - node_.bbox2_[2]; 
+    
+        var d = Math.sqrt(dx_*dx_ + dy_*dy_ + dz_*dz_);
+    
+        var pos_ =  this.core_.getRendererInterface().getCanvasCoords(
+                        [(node_.bbox2_[12] + node_.bbox2_[15] + node_.bbox2_[18] + node_.bbox2_[21])*0.25 + node_.diskNormal_[0] * d*0.2 - cameraPos_[0],
+                         (node_.bbox2_[13] + node_.bbox2_[16] + node_.bbox2_[19] + node_.bbox2_[22])*0.25 + node_.diskNormal_[1] * d*0.2 - cameraPos_[1],
+                         (node_.bbox2_[14] + node_.bbox2_[17] + node_.bbox2_[20] + node_.bbox2_[23])*0.25 + node_.diskNormal_[2] * d*0.2 - cameraPos_[2]],
+                         this.camera_.getMvpMatrix());
+        
+        /*
+            var pos_ =  this.core_.getRendererInterface().getCanvasCoords(
+                            [(node_.diskPos_[0] + node_.diskNormal_[0] * node_.bboxHeight_) - cameraPos_[0],
+                             (node_.diskPos_[1] + node_.diskNormal_[1] * node_.bboxHeight_) - cameraPos_[1],
+                             (node_.diskPos_[2] + node_.diskNormal_[2] * node_.bboxHeight_) - cameraPos_[2]],
+                             this.camera_.getMvpMatrix());
+        */
+    }
 
     var factor_ = this.debugTextSize_;
 
@@ -1350,8 +1372,8 @@ Melown.Map.prototype.drawTileInfo = function(tile_, node_, cameraPos_, mesh_, pi
     //draw node info
     if (this.drawNodeInfo_) {
         var children_ = ((node_.flags_ & ((15)<<4))>>4);
-        var text_ = "" + node_.flags_.toString(2) + "-" + ((children_ & 1) ? "1" : "0") + ((children_ & 2) ? "1" : "0") + ((children_ & 4) ? "1" : "0") + ((children_ & 8) ? "1" : "0");
-        text_ += "-" + node_.minHeight_ + "/" + node_.maxHeight_; 
+        var text_ = "v" + node_.metatile_.version_ + "-" + node_.flags_.toString(2) + "-" + ((children_ & 1) ? "1" : "0") + ((children_ & 2) ? "1" : "0") + ((children_ & 4) ? "1" : "0") + ((children_ & 8) ? "1" : "0");
+        text_ += "-" + node_.minHeight_ + "/" + node_.maxHeight_+ "-" + Math.floor(node_.minZ_) + "/" + Math.floor(node_.maxZ_); 
         this.renderer_.drawText(Math.round(pos_[0]-this.renderer_.getTextSize(4*factor_, text_)*0.5), Math.round(pos_[1]-18*factor_), 4*factor_, text_, [1,0,1,1], pos_[2]);
     }
     

@@ -286,6 +286,10 @@ Melown.MapSrs.prototype.convertCoordsToFast = function(coords_, srs_, skipVertic
     //if (!skipVerticalAdjust_ && stringSrs_) {
         //coords2_[2] = srs_.getFinalHeight(coords2_);
     //}
+    
+    if (srs_.geoidGrid_) {
+        coords2_[index2_+2] -= srs_.getGeoidGridDelta(coords_);
+    }
 };
 
 Melown.MapSrs.prototype.convertCoordsFrom = function(coords_, srs_) {

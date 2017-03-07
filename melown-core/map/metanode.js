@@ -24,6 +24,7 @@ Melown.MapMetanode = function(metatile_, id_, stream_, divisionNode_) {
     this.diskNormal_ = new Array(3); 
     this.diskAngle_ = 1;
     this.diskAngle2_ = 1;
+    //this.bboxHeight_ = 1;
     this.bbox2_ = new Array(24);
 
     if (stream_) {
@@ -208,6 +209,8 @@ Melown.MapMetanode.prototype.clone = function() {
     node_.flags_ = this.flags_;
     node_.minHeight_ = this.minHeight_;
     node_.maxHeight_ = this.maxHeight_;
+    node_.minZ_ = this.minZ_;
+    node_.maxZ_ = this.maxZ_;
     node_.internalTextureCount_ = this.internalTextureCount_;
     node_.pixelSize_ = this.pixelSize_;
     node_.displaySize_ = this.displaySize_;
@@ -250,14 +253,14 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
     this.ready_ = true;
     
     var map_ = this.map_;
+    var geocent_ = map_.geocent_;
+    var version_ = this.metatile_.useVersion_;
 
-    if (!map_.geocent_) {
+    if (!geocent_ && version_ < 4) {
         return;
     }
 
-    var version_ = this.metatile_.version_;
-
-    if (map_.config_.mapPreciseCulling_) { //use division node srs
+    if (map_.config_.mapPreciseCulling_ || version_ >= 4) { //use division node srs
         if (virtual_) {
             return; //result is same for each tile id
         }
@@ -302,8 +305,15 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
         pos_[2] = h; 
         
         divisionNode_.getPhysicalCoordsFast(pos_, true, this.diskPos_, 0, 0);
-        this.diskDistance_ = Melown.vec3.length(this.diskPos_); 
-        Melown.vec3.normalize(this.diskPos_, this.diskNormal_);
+        
+        if (geocent_) {
+            this.diskDistance_ = Melown.vec3.length(this.diskPos_); 
+            Melown.vec3.normalize(this.diskPos_, this.diskNormal_);
+        } else {
+            this.diskNormal_[0] = 0;
+            this.diskNormal_[1] = 0;
+            this.diskNormal_[2] = 1;
+        }
         //this.diskNormal_ = normal_;   
         var normal_ = this.diskNormal_;
         
@@ -330,56 +340,166 @@ Melown.MapMetanode.prototype.generateCullingHelpers = function(virtual_) {
         pos_[1] = ury_; 
         divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 9);
 
-        var normalize_ = Melown.vec3.normalize2; 
-        var dot_ = Melown.vec3.dot; 
-
-        if (map_.config_.mapPreciseBBoxTest_) { 
+        if (!geocent_) {
             var height_ = this.maxZ_ - h;
             
-            //if (this.id_[0] >= 4) {
-              //  divisionNode_ = divisionNode_;
-            //}
-
-            normalize_(bbox_, 0, pos_);
-            var d1_ = dot_(normal_, pos_);
-            bbox_[12] = bbox_[0] + pos_[0] * height_;
-            bbox_[13] = bbox_[1] + pos_[1] * height_;
-            bbox_[14] = bbox_[2] + pos_[2] * height_;
+            bbox_[12] = bbox_[0];
+            bbox_[13] = bbox_[1];
+            bbox_[14] = bbox_[2] + height_;
             
-            normalize_(bbox_, 3, pos_);
-            var d2_ = dot_(normal_, pos_);
-            bbox_[15] = bbox_[3] + pos_[0] * height_;
-            bbox_[16] = bbox_[4] + pos_[1] * height_;
-            bbox_[17] = bbox_[5] + pos_[2] * height_;
+            bbox_[15] = bbox_[3];
+            bbox_[16] = bbox_[4];
+            bbox_[17] = bbox_[5] + height_;
         
-            normalize_(bbox_, 6, pos_);
-            var d3_ = dot_(normal_, pos_);
-            bbox_[18] = bbox_[6] + pos_[0] * height_;
-            bbox_[19] = bbox_[7] + pos_[1] * height_;
-            bbox_[20] = bbox_[8] + pos_[2] * height_;
+            bbox_[18] = bbox_[6];
+            bbox_[19] = bbox_[7];
+            bbox_[20] = bbox_[8] + height_;
         
-            normalize_(bbox_, 9, pos_);
-            var d4_ = dot_(normal_, pos_);
-            bbox_[21] = bbox_[9] + pos_[0] * height_;
-            bbox_[22] = bbox_[10] + pos_[1] * height_;
-            bbox_[23] = bbox_[11] + pos_[2] * height_;
-        
-        } else {
-            normalize_(bbox_, 0, pos_);
-            var d1_ = dot_(normal_, pos_);
-            
-            normalize_(bbox_, 3, pos_);
-            var d2_ = dot_(normal_, pos_);
-    
-            normalize_(bbox_, 6, pos_);
-            var d3_ = dot_(normal_, pos_);
-    
-            normalize_(bbox_, 9, pos_);
-            var d4_ = dot_(normal_, pos_);
+            bbox_[21] = bbox_[9];
+            bbox_[22] = bbox_[10];
+            bbox_[23] = bbox_[11] + height_;
+            return;        
         }
 
+        var dot_ = Melown.vec3.dot; 
 
-        var maxDelta_ = Math.min(d1_, d2_, d3_, d4_);
+        if (map_.config_.mapPreciseBBoxTest_ || version_ >= 4) { 
+        //if (true) { 
+            var height_ = this.maxZ_ - h;
+
+            if (this.id_[0] <= 3) { //get aabbox for low lods
+                var normalize_ = Melown.vec3.normalize2; 
+
+                normalize_(bbox_, 0, pos_);
+                var d1_ = dot_(normal_, pos_);
+                
+                normalize_(bbox_, 3, pos_);
+                var d2_ = dot_(normal_, pos_);
+        
+                normalize_(bbox_, 6, pos_);
+                var d3_ = dot_(normal_, pos_);
+        
+                normalize_(bbox_, 9, pos_);
+                var d4_ = dot_(normal_, pos_);
+
+                var maxDelta_ = Math.min(d1_, d2_, d3_, d4_);
+
+                pos_[0] = (urx_ + llx_)* 0.5; 
+                pos_[1] = ury_; 
+                pos_[2] = h; 
+                
+                divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 12);
+
+                pos_[1] = lly_; 
+                divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 15);
+
+                pos_[0] = urx_; 
+                pos_[1] = (ury_ + lly_)* 0.5; 
+                divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 18);
+
+                pos_[0] = llx_; 
+                divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 21);
+
+                var mpos_ = this.diskPos_;
+                var maxX_ =  Math.max(bbox_[0], bbox_[3], bbox_[6], bbox_[9], bbox_[12], bbox_[15], bbox_[18], bbox_[21], mpos_[0]);
+                var minX_ =  Math.min(bbox_[0], bbox_[3], bbox_[6], bbox_[9], bbox_[12], bbox_[15], bbox_[18], bbox_[21], mpos_[0]);
+                
+                var maxY_ =  Math.max(bbox_[1], bbox_[4], bbox_[7], bbox_[10], bbox_[13], bbox_[16], bbox_[19], bbox_[22], mpos_[1]);
+                var minY_ =  Math.min(bbox_[1], bbox_[4], bbox_[7], bbox_[10], bbox_[13], bbox_[16], bbox_[19], bbox_[22], mpos_[1]);
+                
+                var maxZ_ =  Math.max(bbox_[2], bbox_[5], bbox_[8], bbox_[11], bbox_[14], bbox_[17], bbox_[20], bbox_[23], mpos_[2]);
+                var minZ_ =  Math.min(bbox_[2], bbox_[5], bbox_[8], bbox_[11], bbox_[14], bbox_[17], bbox_[20], bbox_[23], mpos_[2]);
+                
+                if (this.id_[0] <= 1) {
+                    pos_[0] = urx_ + (llx_-urx_ )* 0.25; 
+                    pos_[1] = (ury_ + lly_)* 0.5; 
+                    
+                    divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 12);
+    
+                    pos_[0] = urx_ + (llx_-urx_ )* 0.75; 
+                    divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 15);
+    
+                    pos_[0] = (urx_ + llx_)* 0.5; 
+                    pos_[1] = ury_ + (lly_-ury_ )* 0.25; 
+                    divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 18);
+    
+                    pos_[1] = ury_ + (lly_-ury_ )* 0.75; 
+                    divisionNode_.getPhysicalCoordsFast(pos_, true, bbox_, 0, 21);
+
+                    maxX_ =  Math.max(maxX_, bbox_[12], bbox_[15], bbox_[18], bbox_[21]);
+                    minX_ =  Math.min(minX_, bbox_[12], bbox_[15], bbox_[18], bbox_[21]);
+                    
+                    maxY_ =  Math.max(maxY_, bbox_[13], bbox_[16], bbox_[19], bbox_[22]);
+                    minY_ =  Math.min(minY_, bbox_[13], bbox_[16], bbox_[19], bbox_[22]);
+                    
+                    maxZ_ =  Math.max(maxZ_, bbox_[14], bbox_[17], bbox_[20], bbox_[23]);
+                    minZ_ =  Math.min(minZ_, bbox_[14], bbox_[17], bbox_[20], bbox_[23]);
+                }
+
+                bbox_[0] = minX_; bbox_[1] = minY_; bbox_[2] = minZ_;
+                bbox_[3] = maxX_; bbox_[4] = minY_; bbox_[5] = minZ_;
+                bbox_[6] = maxX_; bbox_[7] = maxY_; bbox_[8] = minZ_;
+                bbox_[9] = minX_; bbox_[10] = maxY_; bbox_[11] = minZ_;
+
+                bbox_[12] = minX_; bbox_[13] = minY_; bbox_[14] = maxZ_;
+                bbox_[15] = maxX_; bbox_[16] = minY_; bbox_[17] = maxZ_;
+                bbox_[18] = maxX_; bbox_[19] = maxY_; bbox_[20] = maxZ_;
+                bbox_[21] = minX_; bbox_[22] = maxY_; bbox_[23] = maxZ_;
+            } else {
+                var normalize_ = Melown.vec3.normalize3; 
+                var dot_ = Melown.vec3.dot2;
+
+                normalize_(bbox_, 0, bbox_, 12);
+                var d1_ = dot_(normal_, bbox_, 12);
+                
+                normalize_(bbox_, 3, bbox_, 15);
+                var d2_ = dot_(normal_, bbox_, 15);
+        
+                normalize_(bbox_, 6, bbox_, 18);
+                var d3_ = dot_(normal_, bbox_, 18);
+        
+                normalize_(bbox_, 9, bbox_, 21);
+                var d4_ = dot_(normal_, bbox_, 21);
+    
+                var maxDelta_ = Math.min(d1_, d2_, d3_, d4_);
+
+                //extend bbox height by tile curvature 
+                height_ += map_.planetRadius_ - (map_.planetRadius_ * maxDelta_);  
+                
+                bbox_[12] = bbox_[0] + bbox_[12] * height_;
+                bbox_[13] = bbox_[1] + bbox_[13] * height_;
+                bbox_[14] = bbox_[2] + bbox_[14] * height_;
+                
+                bbox_[15] = bbox_[3] + bbox_[15] * height_;
+                bbox_[16] = bbox_[4] + bbox_[16] * height_;
+                bbox_[17] = bbox_[5] + bbox_[17] * height_;
+            
+                bbox_[18] = bbox_[6] + bbox_[18] * height_;
+                bbox_[19] = bbox_[7] + bbox_[19] * height_;
+                bbox_[20] = bbox_[8] + bbox_[20] * height_;
+            
+                bbox_[21] = bbox_[9] + bbox_[21] * height_;
+                bbox_[22] = bbox_[10] + bbox_[22] * height_;
+                bbox_[23] = bbox_[11] + bbox_[23] * height_;
+            }
+        
+        } else {
+            var normalize_ = Melown.vec3.normalize2; 
+
+            normalize_(bbox_, 0, pos_);
+            var d1_ = dot_(normal_, pos_);
+            
+            normalize_(bbox_, 3, pos_);
+            var d2_ = dot_(normal_, pos_);
+    
+            normalize_(bbox_, 6, pos_);
+            var d3_ = dot_(normal_, pos_);
+    
+            normalize_(bbox_, 9, pos_);
+            var d4_ = dot_(normal_, pos_);
+
+            var maxDelta_ = Math.min(d1_, d2_, d3_, d4_);
+        }
 
         //get cos angle based at 90deg
         this.diskAngle_ = Math.cos(Math.max(0,(Math.PI * 0.5) - Math.acos(maxDelta_)));
@@ -416,7 +536,7 @@ Melown.MapMetanode.prototype.getWorldMatrix = function(geoPos_, matrix_) {
 };
 
 Melown.MapMetanode.prototype.drawBBox = function(cameraPos_) {
-    if (this.metatile_.version_ >= 5) {
+    if (this.metatile_.useVersion_ >= 4) {
         return this.drawBBox2(cameraPos_);
     }
 
@@ -456,6 +576,12 @@ Melown.MapMetanode.prototype.drawBBox2 = function(cameraPos_) {
     var renderer_ = this.map_.renderer_;
     renderer_.drawLineString([spoints_[0], spoints_[1], spoints_[2], spoints_[3], spoints_[0] ], 2, [0,1,0.5,255], false, false, true);
     renderer_.drawLineString([spoints_[4], spoints_[5], spoints_[6], spoints_[7], spoints_[4] ], 2, [0,1,0.5,255], false, false, true);
+
+    renderer_.drawLineString([spoints_[0], spoints_[4]], 2, [0,1,0.5,255], false, false, true);
+    renderer_.drawLineString([spoints_[1], spoints_[5]], 2, [0,1,0.5,255], false, false, true);
+    renderer_.drawLineString([spoints_[2], spoints_[6]], 2, [0,1,0.5,255], false, false, true);
+    renderer_.drawLineString([spoints_[3], spoints_[7]], 2, [0,1,0.5,255], false, false, true);
+
 };
 
 Melown.MapMetanode.prototype.drawPlane = function(cameraPos_, tile_) {
