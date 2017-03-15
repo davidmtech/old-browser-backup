@@ -106,8 +106,17 @@ Melown.MapTexture.prototype.isReady = function(doNotLoad_, priority_, doNotCheck
    if (this.mapLoaderUrl_ == "https://cdn.melown.com/mario/proxy//melown2015/tms/melown/mapycz-ophoto-cz/10-277-172.mask") {
        this.mapLoaderUrl_ = this.mapLoaderUrl_;
    }
-*/   
+*/
+/*   
    if (this.mapLoaderUrl_ == "https://ecn.t3.tiles.virtualearth.net/tiles/a1202310323212333.jpeg?g=5549") {
+       this.mapLoaderUrl_ = this.mapLoaderUrl_;
+   }
+*/
+   if (this.mapLoaderUrl_ == "https://ecn.t1.tiles.virtualearth.net/tiles/a120231032333003.jpeg?g=5594" ||
+       this.mapLoaderUrl_ == "https://ecn.t2.tiles.virtualearth.net/tiles/a120231032333003.jpeg?g=5594" ||
+       this.mapLoaderUrl_ == "https://ecn.t3.tiles.virtualearth.net/tiles/a120231032333003.jpeg?g=5594" ||
+       this.mapLoaderUrl_ == "https://ecn.t4.tiles.virtualearth.net/tiles/a120231032333003.jpeg?g=5594" ||
+       this.mapLoaderUrl_ == "https://ecn.t5.tiles.virtualearth.net/tiles/a120231032333003.jpeg?g=5594") {
        this.mapLoaderUrl_ = this.mapLoaderUrl_;
    }
 
@@ -117,7 +126,8 @@ Melown.MapTexture.prototype.isReady = function(doNotLoad_, priority_, doNotCheck
    
     if (this.extraBound_) {
         if (this.extraBound_.texture_) {
-            while (this.extraBound_.texture_.checkStatus_ == -1) {
+            while (this.extraBound_.texture_.extraBound_ || this.extraBound_.texture_.checkStatus_ == -1) {
+//            while (this.extraBound_.texture_.checkStatus_ == -1) {
                 var parent_ = this.extraBound_.sourceTile_.parent_;
                 if (parent_.id_[0] < this.extraBound_.layer_.lodRange_[0]) {
                     this.neverReady_ = true;
@@ -216,8 +226,9 @@ Melown.MapTexture.prototype.isReady = function(doNotLoad_, priority_, doNotCheck
                         this.setBoundTexture(this.extraBound_.tile_.parent_, this.extraBound_.layer_);
                         this.checkMask_ = true;
                     }
-    
-                    while (this.extraBound_.texture_.checkStatus_ == -1) {
+
+                    while (this.extraBound_.texture_.extraBound_ || this.extraBound_.texture_.checkStatus_ == -1) {
+                    //while (this.extraBound_.texture_.checkStatus_ == -1) {
                         var parent_ = this.extraBound_.sourceTile_.parent_;
                         if (parent_.id_[0] < this.extraBound_.layer_.lodRange_[0]) {
                             this.neverReady_ = true;

@@ -142,7 +142,8 @@ Melown.MapSubtexture.prototype.isReady = function(doNotLoad_, priority_, doNotCh
                             texture_.setBoundTexture(texture_.extraBound_.tile_.parent_, texture_.extraBound_.layer_);        
                         }
         
-                        while (texture_.extraBound_.texture_.checkStatus_ == -1) {
+                        while (texture_.extraBound_.texture_.extraBound_ || texture_.extraBound_.texture_.checkStatus_ == -1) {
+                        //while (texture_.extraBound_.texture_.checkStatus_ == -1) {
                             texture_.setBoundTexture(texture_.extraBound_.sourceTile_.parent_, texture_.extraBound_.layer_);        
                         }
                     }

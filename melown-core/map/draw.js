@@ -547,6 +547,13 @@ Melown.Map.prototype.drawMeshTile = function(tile_, node_, cameraPos_, pixelSize
 
     if (tile_.drawCommands_[channel_].length > 0 && this.areDrawCommandsReady(tile_.drawCommands_[channel_], priority_, preventLoad_, checkGpu_)) {
         if (!preventRedener_) {
+
+        if (tile_.id_[0] == 16 &&
+            tile_.id_[1] == 18105 &&
+            tile_.id_[2] == 11513) {
+                tile_ = tile_;
+        }
+
             this.processDrawCommands(cameraPos_, tile_.drawCommands_[channel_], priority_);
             this.applyCredits(tile_);
         }
@@ -585,10 +592,10 @@ Melown.Map.prototype.drawMeshTile = function(tile_, node_, cameraPos_, pixelSize
     if (tile_.surfaceMesh_.isReady(preventLoad_, priority_) && !preventLoad_) {
         var submeshes_ = tile_.surfaceMesh_.submeshes_;
 
-        if (tile_.id_[0] == 14 &&
-            tile_.id_[1] == 4421 &&
-            tile_.id_[2] == 2804) {
-            tile_ = tile_;
+        if (tile_.id_[0] == 16 &&
+            tile_.id_[1] == 18105 &&
+            tile_.id_[2] == 11513) {
+                tile_ = tile_;
         }
 
         tile_.drawCommands_ = [[], [], []]; //??
@@ -1094,11 +1101,11 @@ Melown.Map.prototype.getTileTextureTransform = function(sourceTile_, targetTile_
 };
 
 Melown.Map.prototype.updateTileSurfaceBounds = function(tile_, submesh_, surface_, bound_, fullUpdate_) {
-    /*if (tile_.id_[0] == Melown.debugId_[0] &&
-        tile_.id_[1] == Melown.debugId_[1] &&
-        tile_.id_[2] == Melown.debugId_[2]) {
+    if (tile_.id_[0] == 16 &&
+        tile_.id_[1] == 18105 &&
+        tile_.id_[2] == 11513) {
             tile_ = tile_;
-    }*/
+    }
         
     //search map view
     if (surface_.boundLayerSequence_.length > 0) {
