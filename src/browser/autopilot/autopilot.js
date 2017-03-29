@@ -113,9 +113,9 @@ Melown.Autopilot.prototype.tick = function() {
 
     if (this.autoRotate_ != 0) {
         var pos_ = map_.getPosition();
-        var o = map_.getPositionOrientation(pos_);
+        var o = pos_.getOrientation();
         o[0] = (o[0] + this.autoRotate_*timeFactor_) % 360;
-        pos_ = map_.setPositionOrientation(pos_, o);
+        pos_.setOrientation(o);
         map_.setPosition(pos_);
     }
     
@@ -124,7 +124,6 @@ Melown.Autopilot.prototype.tick = function() {
         pos_ = map_.movePositionCoordsTo(pos_, this.autoPanAzimuth_, map_.getPositionViewExtent(pos_)*(this.autoPan_*0.01)*timeFactor_, 0);
         map_.setPosition(pos_);
     }
-
 
     if (this.finished_ || !this.trajectory_) {
         return;
@@ -155,4 +154,25 @@ Melown.Autopilot.prototype.tick = function() {
         this.finished_ = true;
     } 
 };
+
+Melown.Autopilot.prototype.generateTrajectory = function(p1_, p2_, options_) {
+    if(!this.map_) return;
+    return this.map_.generateTrajectory(p1_, p2_, options_);
+};
+
+Melown.Autopilot.prototype.generatePIHTrajectory = function(position_, azimuth_, distance_, options_) {
+    if(!this.map_) return;
+    return this.map_.generatePIHTrajectory(position_, azimuth_, distance_, options_);
+};
+
+Melown.Autopilot.prototype["flyTo"] = Melown.Autopilot.prototype.flyTo; 
+Melown.Autopilot.prototype["flyTrajectory"] = Melown.Autopilot.prototype.flyTrajectory; 
+Melown.Autopilot.prototype["setAutorotate"] = Melown.Autopilot.prototype.setAutorotate; 
+Melown.Autopilot.prototype["getAutorotate"] = Melown.Autopilot.prototype.getAutorotate; 
+Melown.Autopilot.prototype["setAutopan"] = Melown.Autopilot.prototype.setAutopan; 
+Melown.Autopilot.prototype["getAutopan"] = Melown.Autopilot.prototype.getAutopan; 
+Melown.Autopilot.prototype["cancelFlight"] = Melown.Autopilot.prototype.cancelFlight; 
+
+
+
 

@@ -574,7 +574,7 @@ Melown.MapMetanode.prototype.drawBBox2 = function(cameraPos_) {
     for (var i = 0, li = 8*3; i < li; i+=3) {
         var pos_ = ["obj", bbox_[i], bbox_[i+1], "fix", bbox_[i+2], 0, 0, 0, 10, 90 ];
 
-        spoints_.push((new Melown.MapPosition(this.map_, pos_)).getCanvasCoords(null, true));
+        spoints_.push(this.map_.getPositionCanvasCoords((new Melown.MapPosition(pos_)), null, true));
     }
     
     var renderer_ = this.map_.renderer_;

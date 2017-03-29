@@ -1,11 +1,15 @@
 
 var browser = null;
+var map = null;
+var renderer = null;
 
 function startDemo() {
     browser = Melown.MapBrowser("map-div", {
         map : "https://demo.test.mlwn.se/public-maps/grand-ev/mapConfig.json",
         position : [ "obj", 1683559, 6604129, "float", 0, -13, -58, 0, 1764, 90 ]
     });
+
+    renderer = browser.getRenderer();
 
     browser.on("map-loaded", onMapLoaded);
     loadImage();
@@ -17,19 +21,20 @@ function loadImage() {
     var demoImage = Melown.Http.imageFactory(
                    "http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png",
                     (function(){
-                       demoTexture = browser.getRenderer().createTexture({ "source": demoImage });
+                       demoTexture = renderer.createTexture({ "source": demoImage });
                     }));
 }
 
 function onMapLoaded() {
-    browser.addRenderSlot("custom-render", onCustomRender, true);
-    browser.moveRenderSlotAfter("after-map-render", "map");
+    map = browser.getMap();
+
+    map.addRenderSlot("custom-render", onCustomRender, true);
+    map.moveRenderSlotAfter("after-map-render", "map");
 };
 
 function onCustomRender() {
     if (demoTexture) {
-        var renderer = browser.getRenderer();
-        var coords = browser.convertCoordsFromNavToCanvas([1683559, 6604129, 0], "float");
+        var coords = map.convertCoordsFromNavToCanvas([1683559, 6604129, 0], "float");
 
         var totalPoints = 32;
         var points = new Array(totalPoints);
@@ -37,7 +42,7 @@ function onCustomRender() {
         var scale = [400, 100];
         
         for (var i = 0; i < totalPoints; i++) {
-            points[i] = browser.convertCoordsFromNavToCanvas(
+            points[i] = map.convertCoordsFromNavToCanvas(
                          [p[0] + (i / totalPoints) * scale[0],
                          p[1] + Math.sin(2 * Math.PI * (i / totalPoints)) * scale[1],
                          p[2]], "float");

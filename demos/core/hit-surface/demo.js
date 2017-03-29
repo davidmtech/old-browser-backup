@@ -81,6 +81,7 @@ var mouseLeftDown = false;
 var mouseLx = 0;
 var mouseLy = 0;
 
+
 function onMouseDown(event) {
     var right = false;
     var e = event || window.event;
@@ -108,7 +109,7 @@ function onMouseDown(event) {
         
         //force map redraw to display hit point
         map.redraw();
-    }	
+    }
 }
 
 
@@ -150,8 +151,8 @@ function onMouseMove(event) {
             
             //get zoom factor
             var sensitivity = 0.5;
-            var viewExtent = map.getPositionViewExtent(pos);
-            var fov = map.getPositionFov(pos)*0.5;
+            var viewExtent = pos.getViewExtent();
+            var fov = pos.getFov()*0.5;
             var zoomFactor = ((viewExtent * Math.tan(Melown.radians(fov))) / 800) * sensitivity;
             
             //apply factor to deltas
@@ -160,7 +161,7 @@ function onMouseMove(event) {
         
             //get azimuth and distance
             var distance = Math.sqrt(dx*dx + dy*dy);    
-            var azimuth = Melown.degrees(Math.atan2(dx, dy)) + map.getPositionOrientation(pos)[0]; 
+            var azimuth = Melown.degrees(Math.atan2(dx, dy)) + pos.getOrientation()[0]; 
             
             //move position
             pos = map.movePositionCoordsTo(pos, (isMapProjected ? 1 : -1) * azimuth, distance);
@@ -169,13 +170,13 @@ function onMouseMove(event) {
                         
         } else if (mouseRightDown) { //rotate
            
-            var orientation = map.getPositionOrientation(pos);  
+            var orientation = pos.getOrientation();  
 
             var sensitivity_ = 0.4;
             orientation[0] -= dx * sensitivity_;
             orientation[1] -= dy * sensitivity_;
 
-            pos = map.setPositionOrientation(pos, orientation);  
+            pos = pos.setOrientation(orientation);  
             map.setPosition(pos);
         }    
 
@@ -206,12 +207,11 @@ function onMouseWheel(event) {
     var map = core.getMap();
     if (map) {
         var pos = map.getPosition();
-
-        var viewExtent = map.getPositionViewExtent(pos, viewExtent);
+        var viewExtent = pos.getViewExtent();
 
         viewExtent *= 1.0 + (delta > 0 ? -1 : 1)*0.05;
 
-        pos = map.setPositionViewExtent(pos, viewExtent);
+        pos.setViewExtent(viewExtent);
         pos = reduceFloatingHeight(pos, 0.8);
         map.setPosition(pos);
     }  
@@ -220,9 +220,11 @@ function onMouseWheel(event) {
 //used to to gradually reduce relative height over terrain
 function reduceFloatingHeight(pos, factor) {
     var map = core.getMap();
-    if (map.getPositionHeightMode(pos) == "float") {
-
-        var coords = map.getPositionCoords(pos);
+    var pos = map.getPosition();
+    if (pos.getHeightMode() == "float" &&
+        pos.getViewMode() == "obj") {
+            
+        var coords = pos.getCoords();
         if (coords[2] != 0) {
             coords[2] *= factor;
 
@@ -230,7 +232,7 @@ function reduceFloatingHeight(pos, factor) {
                 coords[2] = 0;
             }
 
-            pos = map.setPositionCoords(pos, coords);
+            pos.setCoords(coords);
         }
     }
     

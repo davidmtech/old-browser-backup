@@ -106,12 +106,12 @@ Melown.Browser.prototype.getLinkWithCurrentPos = function() {
     p = map_.convertPositionHeightMode(p, "fix", true);
     
     var s = "";
-    s += map_.getPositionViewMode(p) + ",";
-    var c = map_.getPositionCoords(p);
-    s += c[0].toFixed(6) + "," + c[1].toFixed(6) + "," + map_.getPositionHeightMode(p) + "," + c[2].toFixed(2) + ",";
-    var o = map_.getPositionOrientation(p);
+    s += p.getViewMode() + ",";
+    var c = p.getCoords();
+    s += c[0].toFixed(6) + "," + c[1].toFixed(6) + "," + p.getHeightMode() + "," + c[2].toFixed(2) + ",";
+    var o = p.getOrientation();
     s += o[0].toFixed(2) + "," + o[1].toFixed(2) + "," + o[2].toFixed(2) + ",";
-    s += map_.getPositionViewExtent(p).toFixed(2) + "," + map_.getPositionFov(p).toFixed(2);
+    s += p.getViewExtent().toFixed(2) + "," + p.getFov().toFixed(2);
 
     //replace old value with new one    
     params_["pos"] = s;

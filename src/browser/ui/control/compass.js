@@ -56,7 +56,6 @@ Melown.UIControlCompass.prototype.onDrag = function(event_) {
         return;
     }
 
-    var pos_ = map_.getPosition();
     var delta_ = event_.getDragDelta();
     var sensitivity_ = 0.8;
     
@@ -75,10 +74,10 @@ Melown.UIControlCompass.prototype.onDoubleClick = function(event_) {
     }
 
     var pos_ = map_.getPosition();
-    var orientation_ = map_.getPositionOrientation(pos_);
+    var orientation_ = pos_.getOrientation();
     orientation_[0] = 0;
     orientation_[1] = -90;
-    pos_ = map_.setPositionOrientation(pos_, orientation_);
+    pos_.setOrientation(orientation_);
 
     map_.setPosition(pos_);
     

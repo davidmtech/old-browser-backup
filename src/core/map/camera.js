@@ -25,7 +25,7 @@ Melown.Map.prototype.updateCamera = function() {
         height_ += surfaceHeight_[0];
     }
 
-    var camInfo_ = this.position_.getCameraInfo(this.getNavigationSrs().isProjected());
+    var camInfo_ = this.getPositionCameraInfo(this.position_, this.getNavigationSrs().isProjected());
 
     this.camera_.setPosition(camInfo_.orbitCoords_);
     this.camera_.setRotationMatrix(camInfo_.rotMatrix_);

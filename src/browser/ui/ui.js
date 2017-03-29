@@ -82,12 +82,16 @@ Melown.UI.prototype.getControlVisible = function(id_) {
     }
 };
 
-Melown.UI.prototype.getControlById = function(id_) {
+Melown.UI.prototype.getControl = function(id_) {
     return this.controls_[id_];
 };
 
 Melown.UI.prototype.getMapControl = function() {
     return this.map_;
+};
+
+Melown.UI.prototype.getMapElement = function() {
+    return this.map_.getMapElement();
 };
 
 Melown.UI.prototype.setParam = function(key_) {
@@ -126,6 +130,7 @@ Melown.UI.prototype["removeControl"] = Melown.UI.prototype.removeControl;
 Melown.UI.prototype["setControlHtml"] = Melown.UI.prototype.setControlHtml;
 Melown.UI.prototype["setControlVisible"] = Melown.UI.prototype.setControlVisible;
 Melown.UI.prototype["getControlVisible"] = Melown.UI.prototype.getControlVisible;
-Melown.UI.prototype["getControlById"] = Melown.UI.prototype.getControlById;
+Melown.UI.prototype["getMapElement"] = Melown.UI.prototype.getMapElement; 
+Melown.UI.prototype["getControl"] = Melown.UI.prototype.getControl; 
 
 

@@ -51,18 +51,18 @@ Melown.UIControlSpace.prototype.onSwitch = function() {
     }
 
     var pos_ = map_.getPosition();
-    var orientation_ = map_.getPositionOrientation(pos_);
+    var orientation_ = pos_.getOrientation();
 
     if (this.space3D_) {
         orientation_[0] = 45;
         orientation_[1] = -60;
         //pos_ = map_.setPositionFov(pos_, 90);
-        pos_ = map_.setPositionOrientation(pos_, orientation_);
+        pos_.setOrientation(orientation_);
     } else {
         orientation_[0] = 0;
         orientation_[1] = -90;
         //pos_ = map_.setPositionFov(pos_, 5);
-        pos_ = map_.setPositionOrientation(pos_, orientation_);
+        pos_.setOrientation(orientation_);
     }
 
     pos_ = Melown.constrainMapPosition(this.browser_, pos_);
@@ -78,7 +78,7 @@ Melown.UIControlSpace.prototype.update = function() {
     }
 
     var pos_ = map_.getPosition();
-    var orientation_ = map_.getPositionOrientation(pos_);
+    var orientation_ = pos_.getOrientation();
 
     var space3D_ = (Math.abs(orientation_[1]+90) > 0.1);
 

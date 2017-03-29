@@ -60,7 +60,7 @@ Melown.ControlMode.Pano.prototype.wheel = function(event_) {
     var delta_ = event_.getWheelDelta();
 
     var factor_ = (delta_ > 0 ? -1 : 1) * 1;
-    pos_[9] = Melown.clamp(pos_[9] + factor_, 1, 179);
+    pos_.setViewExtent(Melown.clamp(pos_.getViewExtent() + factor_, 1, 179));
 
     map_.setPosition(pos_);
 };
@@ -85,8 +85,10 @@ Melown.ControlMode.Pano.prototype.tick = function(event_) {
     }
     
     var pos_ = map_.getPosition();
-    pos_[5] -= this.velocity_[0];
-    pos_[6] -= this.velocity_[1];
+    var coords_ = pos_.getCoords();
+    coords_[0] -= this.velocity_[0];
+    coords_[1] -= this.velocity_[1];
+    pos_.setCoords(coords_);
     map_.setPosition(pos_);
 
     // friction
@@ -113,3 +115,4 @@ Melown.ControlMode.Pano.prototype.tick = function(event_) {
 Melown.ControlMode.Pano.prototype.reset = function(config_) {
     this.config_ = config_;
 };
+

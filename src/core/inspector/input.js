@@ -157,7 +157,7 @@ Melown.Inspector.prototype.onKeyUp = function(event_, press_) {
                     case 113:
                        var pos_ = map_.getPosition();
                        console.log("pos-before: " + JSON.stringify(pos_.pos_));
-                       pos_.convertViewMode((pos_.getViewMode() == "obj") ? "subj" : "obj");
+                       map_.convertPositionViewMode(pos_, (pos_.getViewMode() == "obj") ? "subj" : "obj");
                        console.log("new mode: " + pos_.getViewMode());
                        console.log("pos-after: " + JSON.stringify(pos_.pos_));
                        map_.setPosition(pos_);

@@ -11,34 +11,24 @@ Melown.MapTrajectory = function(map_, p1_, p2_, options_) {
     var hm2_ = this.p2_.getHeightMode();
     
     if (hm1_ == "fix" && hm2_ == "float") {
-        this.p1_.convertHeightMode("float", true);
+        this.p1_ = this.map_.convertPositionHeightMode(this.p1_, "float", true);
     } else if (hm1_ == "float" && hm2_ == "fix") {
-        this.p1_.convertHeightMode("fix", true);
+        this.p1_ = this.map_.convertPositionHeightMode(this.p1_, "fix", true);
     } 
     
     var vm1_ = this.p1_.getViewMode();
     var vm2_ = this.p2_.getViewMode();
 
     if (vm1_ == "subj" && vm2_ == "obj") {
-        this.p2_.convertViewMode("subj");
+        this.p2_ = this.map_.convertPositionViewMode(this.p2_, "subj");
     } else if (vm1_ == "obj" && vm2_ == "subj") {
-        this.p1_.convertViewMode("subj");
+        this.p1_ = this.map_.convertPositionViewMode(this.p1_, "subj");
     } 
     
     this.p1_.pos_[5] = this.p1_.pos_[5] < 0 ? (360 + (this.p1_.pos_[5] % 360)) : (this.p1_.pos_[5] % 360);  
     this.p2_.pos_[5] = this.p2_.pos_[5] < 0 ? (360 + (this.p2_.pos_[5] % 360)) : (this.p2_.pos_[5] % 360);  
     
     this.pp1_ = this.p1_.clone();
-
-    /*
-    if (this.p1_.getHeightMode() != this.p2_.getHeightMode()) {
-        this.p2_.convertHeightMode(this.p1_.getHeightMode(), true);
-    }*/
-     
-    //this.pp1_.convertHeightMode("fix", true);
-    //this.pp2_.convertHeightMode("fix", true);
-    //this.pp1_.convertViewMode("subj");
-    //this.pp2_.convertViewMode("subj");
 
     this.mode_ = options_["mode"] || "auto";
     this.submode_ = options_["submode"] || "none";
@@ -100,7 +90,6 @@ Melown.MapTrajectory = function(map_, p1_, p2_, options_) {
     }
     
     //console.log("azim: " + Math.round(this.azimuth_) + " p1: " + this.p1_.pos_[5]  + " p2: " + this.p2_.pos_[5]);
-
     
     this.detectMode();
     this.detectDuration();

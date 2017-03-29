@@ -19,8 +19,11 @@ function startDemo() {
 }
 
 function onSwitchView() {
+    var map = browser.getMap();
+    if (!map) return;
+
     if (button.getElement().checked) {
-        browser.setView({
+        map.setView({
             "surfaces": {
                 "grand": [],
                 "ev": [ "mapycz-base" ]
@@ -28,7 +31,7 @@ function onSwitchView() {
             "freelayers": []
         });    
     } else {
-        browser.setView({
+        map.setView({
             "surfaces": {
                 "grand": [],
                 "ev": []

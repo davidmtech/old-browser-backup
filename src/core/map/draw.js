@@ -220,7 +220,7 @@ Melown.Map.prototype.draw = function(skipFreeLayers_, projected_, camInfo_) {
     //draw skydome before geodata
     if (!projected_ && this.drawFog_ && this.referenceFrame_.id_ == "melown2015") {    
 
-        //var camInfo_ = this.position_.getCameraInfo(true);
+        //var camInfo_ = this.getPositionCameraInfo(this.position_, true);
         var navigationSrsInfo_ = this.getNavigationSrs().getSrsInfo();
 
         var earthRadius_ =  navigationSrsInfo_["a"];

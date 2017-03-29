@@ -24,7 +24,7 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.baseUrlSchema_ = Melown.Url.getSchema(path_);
     this.baseUrlOrigin_ = Melown.Url.getOrigin(path_); 
 
-    this.position_ = new Melown.MapPosition(this, ["obj", 0, 0, "fix", 0,  0, 0, 0,  0, 0]);
+    this.position_ = new Melown.MapPosition(["obj", 0, 0, "fix", 0,  0, 0, 0,  0, 0]);
     this.lastPosition_ = this.position_.clone();
 
     this.srses_ = {};
@@ -687,12 +687,8 @@ Melown.Map.prototype.getMapIds = function(map_) {
 };
 
 Melown.Map.prototype.setPosition = function(pos_, public_) {
-    this.position_ = new Melown.MapPosition(this, pos_);
+    this.position_ = new Melown.MapPosition(pos_);
     this.markDirty();
-};
-
-Melown.Map.prototype.convertCoords = function(coords_, source_, destination_) {
-    return this.referenceFrame_.convertCoords(coords_, source_, destination_);
 };
 
 Melown.Map.prototype.getPhysicalSrs = function(coords_, source_, destination_) {
@@ -1045,7 +1041,7 @@ Melown.Map.prototype.drawMap = function() {
 
     if (!projected_) {
         //why calling this function distorts camera? why I have call it before update camera< 
-        //var camInfo_ = this.position_.getCameraInfo(this.getNavigationSrs().isProjected(), true); //
+        //var camInfo_ = this.getPositionCameraInfo(this.position_, this.getNavigationSrs().isProjected(), true); //
     }
 
     var camInfo_ = this.updateCamera();
@@ -1151,8 +1147,8 @@ Melown.Map.prototype.update = function() {
         return;
     }
 
-    if (this.position_.isDifferent(this.lastPosition_)) {
-        this.core_.callListener("map-position-changed", {"position":this.position_.pos_.slice(), "last-position":this.lastPosition_.pos_.slice()});
+    if (!this.position_.isSame(this.lastPosition_)) {
+        this.core_.callListener("map-position-changed", {"position":this.position_.toArray(), "last-position":this.lastPosition_.toArray()});
     }
 
     if (this.lastCameraTerrainHeight_ != this.cameraTerrainHeight_) {

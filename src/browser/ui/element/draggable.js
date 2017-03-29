@@ -161,8 +161,8 @@ Melown.UIElement.prototype.onDragMove = function(event_) {
 
             if (d1_ > d2_ * 5 || d2_ > d1_ * 5) { //dectec situation where only one finger is closing to another
                 
-                //make first vector from non moving point to beginnig positon of moving point
-                //make seconf vector from non moving point to ending positon of moving point
+                //make first vector from non moving point to beginnig position of moving point
+                //make seconf vector from non moving point to ending position of moving point
                 if (d1_ > d2_ * 5) {
                     var p1_ = t2[0];
                     var p2_ = t[0];

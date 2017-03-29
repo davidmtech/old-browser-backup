@@ -143,7 +143,7 @@ Melown.UIControlSearch.prototype.onSelectItem = function(index_, event_) {
         var proj4_ = this.browser_.getProj4();
         coords_ = proj4_(this.coordsSrs_, navigationSrs_["srsDef"], coords_);
 
-        pos_ = map_.setPositionCoords(pos_, coords_);
+        pos_.setCoords(pos_);
         
         //try to guess view extent from location type
         var viewExtent_ = 10000;                
@@ -155,8 +155,8 @@ Melown.UIControlSearch.prototype.onSelectItem = function(index_, event_) {
             case "residential": viewExtent_ = 3000; break;               
         }
         
-        pos_ = map_.setPositionViewExtent(pos_, viewExtent_);                
-        pos_ = map_.setPositionOrientation(pos_, [0,-60,0]);                
+        pos_.setViewExtent(viewExtent_);                
+        pos_.setOrientation([0,-60,0]);                
 
         map_.setPosition(pos_);
         

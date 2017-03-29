@@ -22,17 +22,18 @@ function startDemo() {
 }
 
 function onFlyToNewDestination() {
+    var autopilot = browser.getAutopilot();
     switch (list.getElement().elements["destination"].value) {
         case "a":
-            browser.flyTo([ "obj", 1683559, 6604129, "float", 0, -13, -58, 0, 1764, 90 ]);
+            autopilot.flyTo([ "obj", 1683559, 6604129, "float", 0, -13, -58, 0, 1764, 90 ]);
             break;
 
         case "b":
-            browser.flyTo([ "obj", 1679084, 6607401, "float", 0, -17, -57, 0, 1158, 90 ]);
+            autopilot.flyTo([ "obj", 1679084, 6607401, "float", 0, -17, -57, 0, 1158, 90 ]);
             break;
 
         case "c":
-            browser.flyTo([ "obj", 1694920, 6608430, "float", 0, -24, -76, 0, 2049, 90 ]);
+            autopilot.flyTo([ "obj", 1694920, 6608430, "float", 0, -24, -76, 0, 2049, 90 ]);
             break;
     }
 }

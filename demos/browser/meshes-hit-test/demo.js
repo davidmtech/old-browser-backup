@@ -11,11 +11,13 @@ function startDemo() {
         position : [ "obj", 1683559, 6604129, "float", 0, -13, -58, 0, 964, 90 ]
     });
 
+    renderer = browser.getRenderer();
+
     //callback once is map config loaded
     browser.on("map-loaded", onMapLoaded);
 
     //add mouse down callback
-    browser.getMapElement().on('mousedown', onMouseDown);
+    browser.getUI().getMapElement().on('mousedown', onMouseDown);
 
     loadTextures();
 
@@ -27,7 +29,7 @@ function loadTextures() {
     //load texture used for cubes    
     var woodImage = Melown.Http.imageFactory("./wood.png",
         (function(){
-            woodTexture = browser.getRenderer().createTexture({ "source": woodImage });
+            woodTexture = renderer.createTexture({ "source": woodImage });
         }).bind(this)
         );
 
@@ -35,7 +37,7 @@ function loadTextures() {
     var pointImage = Melown.Http.imageFactory(
         "http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png",
         (function(){
-            pointTexture = browser.getRenderer().createTexture({ "source": pointImage });
+            pointTexture = renderer.createTexture({ "source": pointImage });
         }).bind(this)
         );
 }
@@ -95,11 +97,10 @@ function createCube() {
                     1,0,0, 1,0,0, 1,0,0, //right
                     1,0,0, 1,0,0, 1,0,0 ];
 
-    cubeMesh = browser.getRenderer().createMesh({ "vertices": vertices, "uvs": uvs, "normals": normals });
+    cubeMesh = renderer.createMesh({ "vertices": vertices, "uvs": uvs, "normals": normals });
 }
 
 function drawCube(coords, scale, ambientColor, diffuseColor, specularColor, shininess, shader) {
-    var renderer = browser.getRenderer();
     var cameInfo = browser.getCameraInfo();
 
     //matrix which tranforms mesh position and scale
@@ -147,10 +148,10 @@ function drawCube(coords, scale, ambientColor, diffuseColor, specularColor, shin
 function onMapLoaded() {
     //add render slots
     //render slots are called during map render
-    browser.addRenderSlot("custom-meshes", onDrawMeshes, true);
-    browser.addRenderSlot("custom-points", onDrawPoints, true);
-    browser.moveRenderSlotAfter("after-map-render", "custom-meshes");
-    browser.moveRenderSlotAfter("custom-meshes", "custom-points");
+    map.addRenderSlot("custom-meshes", onDrawMeshes, true);
+    map.addRenderSlot("custom-points", onDrawPoints, true);
+    map.moveRenderSlotAfter("after-map-render", "custom-meshes");
+    map.moveRenderSlotAfter("custom-meshes", "custom-points");
 }
 
 function onMouseDown(event) {
@@ -158,10 +159,10 @@ function onMouseDown(event) {
         var coords = event.getMouseCoords();
 
         //get hit coords with fixed height
-        clickCoords = browser.getHitCoords(coords[0], coords[1], "fixed");
+        clickCoords = map.getHitCoords(coords[0], coords[1], "fixed");
         
         //force map redraw to display hit point
-        browser.redraw();
+        map.redraw();
     }
 }
 
@@ -172,25 +173,25 @@ function onDrawMeshes(renderChannel) {
         //draw textured cubes        
         shader =  (renderChannel == "hit") ? "hit" : "textured-and-shaded";
 
-        coords = browser.convertCoordsFromNavToCameraSpace([1683559, 6604129, 0], "float");
+        coords = map.convertCoordsFromNavToCameraSpace([1683559, 6604129, 0], "float");
         drawCube(coords, 50, [255,128,128], [0,0,0], [0,0,0], 0, shader);
 
-        coords = browser.convertCoordsFromNavToCameraSpace([1683559+150, 6604129, 0], "float");
+        coords = map.convertCoordsFromNavToCameraSpace([1683559+150, 6604129, 0], "float");
         drawCube(coords, 50, [0,0,0], [255,128,128], [0,0,0], 0, shader);
 
-        coords = browser.convertCoordsFromNavToCameraSpace([1683559+300, 6604129, 0], "float");
+        coords = map.convertCoordsFromNavToCameraSpace([1683559+300, 6604129, 0], "float");
         drawCube(coords, 50, [0,0,0], [255,128,128], [255,255,255], 90, shader);
 
         //draw cubes without textures
         shader =  (renderChannel == "hit") ? "hit" : "shaded";
 
-        coords = browser.convertCoordsFromNavToCameraSpace([1683559, 6604129+200, 0], "float");
+        coords = map.convertCoordsFromNavToCameraSpace([1683559, 6604129+200, 0], "float");
         drawCube(coords, 50, [255,128,128], [0,0,0], [0,0,0], 0, shader);
 
-        coords = browser.convertCoordsFromNavToCameraSpace([1683559+150, 6604129+200, 0], "float");
+        coords = map.convertCoordsFromNavToCameraSpace([1683559+150, 6604129+200, 0], "float");
         drawCube(coords, 50, [0,0,0], [255,128,128], [0,0,0], 0, shader);
 
-        coords = browser.convertCoordsFromNavToCameraSpace([1683559+300, 6604129+200, 0], "float");
+        coords = map.convertCoordsFromNavToCameraSpace([1683559+300, 6604129+200, 0], "float");
         drawCube(coords, 50, [0,0,0], [255,128,128], [255,255,255], 90, shader);
     }    
 } 
@@ -201,10 +202,9 @@ function onDrawPoints(renderChannel) {
     }
 
     if (clickCoords) { //draw hit point
-        var renderer = browser.getRenderer();
-        
+
         //conver hit coords to canvas coords
-        coords = browser.convertCoordsFromNavToCanvas(clickCoords, "fixed");
+        coords = map.convertCoordsFromNavToCanvas(clickCoords, "fixed");
 
         renderer.drawImage({
             "rect" : [coords[0]-12, coords[1]-12, 24, 24],
