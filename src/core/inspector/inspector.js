@@ -173,12 +173,12 @@ Melown.Inspector.prototype.onMapUpdate = function(string_) {
         var renderer_ = this.core_.getRendererInterface();
         var pos_ = map_.getPosition();
         var count_ = 16;
-        var step_ = map_.getPositionViewExtent(pos_) / (count_ * 4);
+        var step_ = pos_.getViewExtent() / (count_ * 4);
 
         var cbuffer_ = new Array(count_ * count_);
 
 /*        
-        var coords_ = map_.getPositionCoords(pos_);
+        var coords_ = pos_.getCoords();
 
         for (var j = 0; j < count_; j++) {
             for (var i = 0; i < count_; i++) {
@@ -199,7 +199,7 @@ Melown.Inspector.prototype.onMapUpdate = function(string_) {
                 var l = Math.sqrt(dx_*dx_ + dy_*dy_);
 
                 var pos2_ = map_.movePositionCoordsTo(pos_, Melown.degrees(a), l);
-                var coords_ = map_.getPositionCoords(pos2_);
+                var coords_ = pos2_.getCoords();
                 
                 var screenCoords_ = map_.convertCoordsFromNavToCanvas([coords_[0], coords_[1], 0], "float", this.radarLod_);
 

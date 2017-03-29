@@ -61,7 +61,7 @@ Melown.Core.prototype.setConfigParam = function(key_, value_) {
             if (key_ == "view") {
                 this.getMap().setView(value_);
             } else {
-                this.getMap().setPosition(new Melown.MapPosition(this, value_));
+                this.getMap().setPosition(new Melown.MapPosition(value_));
             }
             if (this.configStorage_[key_]) {
                 delete this.configStorage_[key_];

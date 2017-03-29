@@ -120,13 +120,11 @@ Melown.MapInterface.prototype.getBoundLayerOptions = function(id_) {
 };*/
 
 Melown.MapInterface.prototype.convertPositionViewMode = function(position_, mode_) {
-    var pos_ = this.map_.convertPositionViewMode((new Melown.MapPosition(position_)), mode_);
-    return (pos_ != null) ? pos_.pos_ : pos_;
+    return this.map_.convertPositionViewMode((new Melown.MapPosition(position_)), mode_);
 };
 
 Melown.MapInterface.prototype.convertPositionHeightMode = function(position_, mode_, noPrecisionCheck_) {
-    var pos_ = this.map_.convertPositionHeightMode((new Melown.MapPosition(position_)), mode_, noPrecisionCheck_);
-    return (pos_ != null) ? pos_.pos_ : pos_;
+    return this.map_.convertPositionHeightMode((new Melown.MapPosition(position_)), mode_, noPrecisionCheck_);
 };
 
 Melown.MapInterface.prototype.convertCoords = function(sourceSrs_, destinationSrs_, coords_) {
@@ -163,6 +161,14 @@ Melown.MapInterface.prototype.convertCoordsFromPhysToCameraSpace = function(pos_
     var p = this.map_.cameraPosition_;
     return [pos_[0] - p[0], pos_[1] - p[1], pos_[2] - p[2]];
 };
+
+Melown.MapInterface.prototype.getPositionCanvasCoords = function(position_, lod_) {
+    return this.map_.getPositionCanvasCoords(new Melown.MapPosition(position_), lod_);
+};
+
+Melown.MapInterface.prototype.getPositionCameraCoords = function(position_, mode_) {
+    return this.map_.getPositionCameraCoords(new Melown.MapPosition(position_), mode_);
+}; 
 
 Melown.MapInterface.prototype.movePositionCoordsTo = function(position_, azimuth_, distance_, skipOrientation_) {
     return this.map_.movePositionCoordsTo(new Melown.MapPosition(position_), azimuth_, distance_, skipOrientation_);
@@ -202,17 +208,17 @@ Melown.MapInterface.prototype.isBBoxInsideCameraFrustum = function(bbox_) {
 };
 
 Melown.MapInterface.prototype.generateTrajectory = function(p1_, p2_, options_) {
-    p1_ = new Melown.MapPosition(this.map_, p1_);
-    p2_ = new Melown.MapPosition(this.map_, p2_);
-    return (new Melown.MapTrajectory(this.map_, p1_, p2_, options_)).generate();
+    p1_ = new Melown.MapPosition(p1_);
+    p2_ = new Melown.MapPosition(p2_);
+    return (new Melown.MapTrajectory(p1_, p2_, options_)).generate();
 };
 
 Melown.MapInterface.prototype.generatePIHTrajectory = function(position_, azimuth_, distance_, options_) {
-    var p_ = new Melown.MapPosition(this.map_, position_);
+    var p_ = new Melown.MapPosition(position_);
     options_["distance"] = distance_;
     options_["azimuth"] = azimuth_;
     options_["distanceAzimuth"] = true;
-    return (new Melown.MapTrajectory(this.map_, p_, p_, options_)).generate();
+    return (new Melown.MapTrajectory(p_, p_, options_)).generate();
 };
 
 Melown.RendererInterface.prototype.setConfigParams = function(params_) {
