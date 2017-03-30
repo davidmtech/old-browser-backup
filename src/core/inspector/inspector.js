@@ -5,6 +5,11 @@
 Melown.Inspector = function(core_) {
     this.core_ = core_;
 
+    /*this.inspectorElement_ = document.createElement("div");
+    this.inspectorElement_.id = "melown-inspector";
+    this.inspectorElement_.className = "melown-browser";
+    this.core_.element_.appendChild(this.inspectorElement_);*/
+
     this.initStatsPanel();
     this.initGraphsPanel();
     this.initLayersPanel();

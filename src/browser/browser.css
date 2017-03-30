@@ -1,14 +1,16 @@
 
+.melown-browser * {
+    /*all: initial;*/
+    /*box-sizing: border-box;*/
+}
+
 .melown-browser {
+    /*all: initial;*/
     position: absolute;
     left: 0px;
     top: 0px;
     width: 100%;
     height: 100%;
-}
-
-.melown-browser * {
-    box-sizing: border-box;
 }
 
 /*

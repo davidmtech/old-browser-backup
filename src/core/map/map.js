@@ -127,6 +127,7 @@ Melown.Map = function(core_, mapConfig_, path_, config_) {
     this.drawBuffer_ = new Array(60000);
     this.tmpVec3_ = new Array(3);
     this.tmpVec5_ = new Array(5);
+    this.bboxBuffer_ = new Float32Array(8*3);
 
     var res_ = this.getSpatialDivisionNodeDepths();
 
